@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -50,6 +51,18 @@ public partial class App : Application
             {
                 DataContext = viewModel
             };
+
+            // Open files passed via command line arguments
+            if (desktop.Args != null)
+            {
+                foreach (var arg in desktop.Args)
+                {
+                    if (!string.IsNullOrEmpty(arg) && File.Exists(arg))
+                    {
+                        viewModel.OpenFile(arg);
+                    }
+                }
+            }
 
             desktop.ShutdownRequested += (s, e) =>
             {

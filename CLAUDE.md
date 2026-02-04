@@ -9,17 +9,18 @@ Flit is a lightweight desktop text editor built with C# (.NET 10.0) and Avalonia
 ## Build Commands
 
 ```bash
-# Build (from Flit/ directory)
+# Build (from src/ directory)
+cd src
 dotnet build
 
 # Run the application
-dotnet run
+dotnet run --project Flit
 
 # Release build
 dotnet build -c Release
 ```
 
-Solution file: `Flit/Flit.sln`
+Solution file: `src/Flit.sln`
 
 ## Architecture
 

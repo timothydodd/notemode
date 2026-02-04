@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <Package Name="Flit"
+           Manufacturer="Flit"
+           Version="$(ProductVersion)"
+           UpgradeCode="A1B2C3D4-E5F6-7890-ABCD-EF1234567890">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Flit is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Feature Id="ProductFeature" Title="Flit" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="ContextMenuComponents" />
+    </Feature>
+
+    <!-- UI for installation dialogs -->
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+
+    <!-- License (optional - remove if no license file) -->
+    <!-- <WixVariable Id="WixUILicenseRtf" Value="license.rtf" /> -->
+
+  </Package>
+
+  <Fragment>
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="INSTALLFOLDER" Name="Flit" />
+    </StandardDirectory>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Component Id="FlitExe" Guid="B2C3D4E5-F6A7-8901-BCDE-F23456789012">
+        <File Id="FlitExeFile"
+              Source="$(PublishDir)\Flit.exe"
+              KeyPath="yes">
+          <Shortcut Id="StartMenuShortcut"
+                    Directory="ProgramMenuFolder"
+                    Name="Flit"
+                    WorkingDirectory="INSTALLFOLDER"
+                    Advertise="yes" />
+        </File>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ContextMenuComponents" Directory="INSTALLFOLDER">
+      <!-- Context menu for all files -->
+      <Component Id="ContextMenuAllFiles" Guid="C3D4E5F6-A7B8-9012-CDEF-345678901234">
+        <RegistryKey Root="HKCR" Key="*\shell\EditWithFlit">
+          <RegistryValue Type="string" Value="Edit with Flit" />
+          <RegistryValue Type="string" Name="Icon" Value="[INSTALLFOLDER]Flit.exe,0" />
+        </RegistryKey>
+        <RegistryKey Root="HKCR" Key="*\shell\EditWithFlit\command">
+          <RegistryValue Type="string" Value="&quot;[INSTALLFOLDER]Flit.exe&quot; &quot;%1&quot;" KeyPath="yes" />
+        </RegistryKey>
+      </Component>
+
+      <!-- Context menu for directories (background) -->
+      <Component Id="ContextMenuDirectory" Guid="D4E5F6A7-B8C9-0123-DEFA-456789012345">
+        <RegistryKey Root="HKCR" Key="Directory\Background\shell\EditWithFlit">
+          <RegistryValue Type="string" Value="Open Flit here" />
+          <RegistryValue Type="string" Name="Icon" Value="[INSTALLFOLDER]Flit.exe,0" />
+        </RegistryKey>
+        <RegistryKey Root="HKCR" Key="Directory\Background\shell\EditWithFlit\command">
+          <RegistryValue Type="string" Value="&quot;[INSTALLFOLDER]Flit.exe&quot;" KeyPath="yes" />
+        </RegistryKey>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+</Wix>
