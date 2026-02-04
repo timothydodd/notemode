@@ -189,62 +189,108 @@
             </Border>
 
             <!-- Tab Bar and Content -->
-            <TabControl x:Name="TabControl"
-                        ItemsSource="{Binding Tabs}"
-                        SelectedItem="{Binding SelectedTab}"
-                        Padding="0">
-                <TabControl.ItemTemplate>
-                    <DataTemplate DataType="vm:TabViewModel">
-                        <Border x:Name="TabBorder"
-                                Background="Transparent"
-                                BorderBrush="Transparent"
-                                BorderThickness="1"
-                                CornerRadius="3"
-                                Padding="2"
-                                Tag="{Binding}"
-                                PointerPressed="TabItem_PointerPressed">
-                            <Border.ContextMenu>
-                                <ContextMenu x:DataType="vm:TabViewModel">
-                                    <MenuItem Header="Close" Command="{Binding #MainWin.CloseTabWithPromptCommand}" CommandParameter="{Binding}" />
-                                    <MenuItem Header="Close Others" Command="{Binding #MainWin.CloseOthersWithPromptCommand}" CommandParameter="{Binding}" />
-                                    <MenuItem Header="Close to Right" Command="{Binding #MainWin.CloseToRightWithPromptCommand}" CommandParameter="{Binding}" />
-                                    <MenuItem Header="Close to Left" Command="{Binding #MainWin.CloseToLeftWithPromptCommand}" CommandParameter="{Binding}" />
-                                    <MenuItem Header="Close Unchanged" Command="{Binding #MainWin.((vm:MainWindowViewModel)DataContext).CloseUnchangedCommand}" />
-                                    <MenuItem Header="Close All" Command="{Binding #MainWin.CloseAllWithPromptCommand}" />
-                                    <Separator />
-                                    <MenuItem Header="Save" Tag="{Binding}" Click="SaveTab_Click" />
-                                    <MenuItem Header="Save As..." Tag="{Binding}" Click="SaveTabAs_Click" />
-                                    <Separator />
-                                    <MenuItem Header="Rename..." Tag="{Binding}" Click="RenameTab_Click" />
-                                </ContextMenu>
-                            </Border.ContextMenu>
-                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                <!-- Drag Handle -->
-                                <TextBlock Text="⋮⋮"
-                                           FontSize="10"
-                                           Foreground="{DynamicResource DragHandleColor}"
-                                           VerticalAlignment="Center"
-                                           Cursor="SizeAll"
-                                           Margin="0,0,2,0"
-                                           Opacity="0.6"/>
-                                <TextBlock Text="{Binding DisplayTitle}" VerticalAlignment="Center" />
-                                <Button Content="x"
-                                        Command="{Binding #MainWin.CloseTabWithPromptCommand}"
-                                        CommandParameter="{Binding}"
-                                        Padding="2,0"
-                                        FontSize="11"
-                                        Background="Transparent"
-                                        VerticalAlignment="Center" />
-                            </StackPanel>
-                        </Border>
-                    </DataTemplate>
-                </TabControl.ItemTemplate>
-                <TabControl.ContentTemplate>
-                    <DataTemplate DataType="vm:TabViewModel">
-                        <views:EditorView DataContext="{Binding}" />
-                    </DataTemplate>
-                </TabControl.ContentTemplate>
-            </TabControl>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Tab Strip with Plus Button -->
+                <Border Grid.Row="0" Background="{DynamicResource TabStripBackground}">
+                    <DockPanel>
+                        <!-- Plus Button (docked right) -->
+                        <Button DockPanel.Dock="Right"
+                                Content="+"
+                                Command="{Binding NewTabCommand}"
+                                ToolTip.Tip="New Tab (Ctrl+N)"
+                                Width="28"
+                                Height="28"
+                                Margin="4,0,8,0"
+                                Padding="0"
+                                FontSize="16"
+                                FontWeight="Light"
+                                VerticalContentAlignment="Center"
+                                HorizontalContentAlignment="Center"
+                                Classes="newtab"/>
+                        <!-- Tab Items -->
+                        <ListBox x:Name="TabStrip"
+                                 ItemsSource="{Binding Tabs}"
+                                 SelectedItem="{Binding SelectedTab}"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Padding="0"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="vm:TabViewModel">
+                                    <Grid Tag="{Binding}"
+                                          PointerPressed="TabItem_PointerPressed"
+                                          Cursor="Hand"
+                                          MinHeight="28"
+                                          RowDefinitions="*,2">
+                                        <Grid.ContextMenu>
+                                            <ContextMenu x:DataType="vm:TabViewModel">
+                                                <MenuItem Header="Close" Command="{Binding #MainWin.CloseTabWithPromptCommand}" CommandParameter="{Binding}" />
+                                                <MenuItem Header="Close Others" Command="{Binding #MainWin.CloseOthersWithPromptCommand}" CommandParameter="{Binding}" />
+                                                <MenuItem Header="Close to Right" Command="{Binding #MainWin.CloseToRightWithPromptCommand}" CommandParameter="{Binding}" />
+                                                <MenuItem Header="Close to Left" Command="{Binding #MainWin.CloseToLeftWithPromptCommand}" CommandParameter="{Binding}" />
+                                                <MenuItem Header="Close Unchanged" Command="{Binding #MainWin.((vm:MainWindowViewModel)DataContext).CloseUnchangedCommand}" />
+                                                <MenuItem Header="Close All" Command="{Binding #MainWin.CloseAllWithPromptCommand}" />
+                                                <Separator />
+                                                <MenuItem Header="Save" Tag="{Binding}" Click="SaveTab_Click" />
+                                                <MenuItem Header="Save As..." Tag="{Binding}" Click="SaveTabAs_Click" />
+                                                <Separator />
+                                                <MenuItem Header="Rename..." Tag="{Binding}" Click="RenameTab_Click" />
+                                            </ContextMenu>
+                                        </Grid.ContextMenu>
+                                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="8,4">
+                                            <!-- Drag Handle -->
+                                            <TextBlock Text="&#x22EE;&#x22EE;"
+                                                       FontSize="10"
+                                                       Foreground="{DynamicResource DragHandleColor}"
+                                                       VerticalAlignment="Center"
+                                                       Cursor="SizeAll"
+                                                       Margin="0,0,4,0"
+                                                       Opacity="0.6"/>
+                                            <TextBlock Text="{Binding DisplayTitle}"
+                                                       VerticalAlignment="Center"
+                                                       FontSize="11"/>
+                                            <Button Content="x"
+                                                    Command="{Binding #MainWin.CloseTabWithPromptCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Padding="4,0"
+                                                    Margin="4,0,0,0"
+                                                    FontSize="11"
+                                                    Background="Transparent"
+                                                    VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <!-- Selection indicator -->
+                                        <Border x:Name="SelectionIndicator"
+                                                Grid.Row="1"
+                                                Background="{DynamicResource AccentColor}"
+                                                IsVisible="{Binding $parent[ListBoxItem].IsSelected}"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+                </Border>
+
+                <!-- Tab Content -->
+                <ContentControl Grid.Row="1"
+                                Content="{Binding SelectedTab}">
+                    <ContentControl.ContentTemplate>
+                        <DataTemplate DataType="vm:TabViewModel">
+                            <views:EditorView DataContext="{Binding}" />
+                        </DataTemplate>
+                    </ContentControl.ContentTemplate>
+                </ContentControl>
+            </Grid>
         </DockPanel>
 
         <!-- Drag Ghost Overlay -->

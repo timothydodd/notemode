@@ -145,6 +145,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
                 _useLightTheme = value;
                 OnPropertyChanged();
                 ThemeChanged?.Invoke(this, value);
+                RefreshAllSyntaxHighlighting();
                 SaveState();
             }
         }
@@ -411,6 +412,14 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
 
         SaveState();
+    }
+
+    private void RefreshAllSyntaxHighlighting()
+    {
+        foreach (var tab in Tabs)
+        {
+            tab.RefreshSyntaxHighlighting();
+        }
     }
 
     public void SaveState()

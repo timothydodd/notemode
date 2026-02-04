@@ -19,6 +19,15 @@
         <SolidColorBrush x:Key="AccentColor" Color="#bd93f9"/>
         <SolidColorBrush x:Key="SecondaryText" Color="#6272a4"/>
         <SolidColorBrush x:Key="WarningColor" Color="#ffb86c"/>
+        <!-- Tab strip resources -->
+        <SolidColorBrush x:Key="TabStripBackground" Color="#1a1b24"/>
+        <SolidColorBrush x:Key="TabItemBackground" Color="#1a1b24"/>
+        <SolidColorBrush x:Key="TabItemHover" Color="#44475a"/>
+        <SolidColorBrush x:Key="TabItemSelected" Color="#282a36"/>
+        <SolidColorBrush x:Key="TabItemSelectedText" Color="#f8f8f2"/>
+        <SolidColorBrush x:Key="TabItemText" Color="#808080"/>
+        <SolidColorBrush x:Key="NewTabButtonBackground" Color="#2a2c38"/>
+        <SolidColorBrush x:Key="NewTabButtonHover" Color="#44475a"/>
     </Styles.Resources>
 
     <Style Selector="Window">
@@ -213,5 +222,64 @@
 
     <Style Selector="TabItem:pointerover TextBlock">
         <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <!-- Tab Strip ListBox styles -->
+    <Style Selector="ListBox#TabStrip">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="ListBox#TabStrip ListBoxItem">
+        <Setter Property="Background" Value="{DynamicResource TabItemBackground}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TabItemText}"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Margin" Value="0"/>
+        <Setter Property="MinHeight" Value="28"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="ListBox#TabStrip ListBoxItem /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource TabItemBackground}"/>
+    </Style>
+
+    <Style Selector="ListBox#TabStrip ListBoxItem:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource TabItemHover}"/>
+    </Style>
+
+    <Style Selector="ListBox#TabStrip ListBoxItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource TabItemSelected}"/>
+    </Style>
+
+
+    <Style Selector="ListBox#TabStrip ListBoxItem:selected TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource TabItemSelectedText}"/>
+    </Style>
+
+    <Style Selector="ListBox#TabStrip ListBoxItem TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource TabItemText}"/>
+    </Style>
+
+    <Style Selector="ListBox#TabStrip ListBoxItem:pointerover TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource TabItemSelectedText}"/>
+    </Style>
+
+    <!-- New Tab Button styles -->
+    <Style Selector="Button.newtab">
+        <Setter Property="Background" Value="{DynamicResource NewTabButtonBackground}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TabItemText}"/>
+        <Setter Property="CornerRadius" Value="4"/>
+    </Style>
+
+    <Style Selector="Button.newtab /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource NewTabButtonBackground}"/>
+        <Setter Property="CornerRadius" Value="4"/>
+    </Style>
+
+    <Style Selector="Button.newtab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource NewTabButtonHover}"/>
+    </Style>
+
+    <Style Selector="Button.newtab:pointerover">
+        <Setter Property="Foreground" Value="{DynamicResource TabItemSelectedText}"/>
     </Style>
 </Styles>

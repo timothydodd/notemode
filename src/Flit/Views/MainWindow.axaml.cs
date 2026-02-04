@@ -4,8 +4,6 @@ using System.Linq;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Presenters;
-using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
@@ -19,7 +17,7 @@ namespace Flit.Views;
 public partial class MainWindow : Window
 {
     private TabViewModel? _draggedTab;
-    private Border? _draggedBorder;
+    private Control? _draggedElement;
     private Point _dragStartPoint;
     private bool _isDragging;
     private int _draggedOriginalIndex;
@@ -29,7 +27,7 @@ public partial class MainWindow : Window
     private Border? _dragGhost;
     private TextBlock? _dragGhostText;
     private Canvas? _dragCanvas;
-    private TabControl? _tabControl;
+    private ListBox? _tabStrip;
 
     public MainWindow()
     {
@@ -93,7 +91,7 @@ public partial class MainWindow : Window
         _dragGhost = this.FindControl<Border>("DragGhost");
         _dragGhostText = this.FindControl<TextBlock>("DragGhostText");
         _dragCanvas = this.FindControl<Canvas>("DragCanvas");
-        _tabControl = this.FindControl<TabControl>("TabControl");
+        _tabStrip = this.FindControl<ListBox>("TabStrip");
 
         if (ViewModel != null)
         {
@@ -155,22 +153,18 @@ public partial class MainWindow : Window
 
     private EditorView? GetCurrentEditorView()
     {
-        if (_tabControl == null) return null;
-        var selectedItem = _tabControl.SelectedItem;
-        if (selectedItem == null) return null;
-
-        var container = _tabControl.ContainerFromItem(selectedItem);
-        return container?.GetVisualDescendants().OfType<EditorView>().FirstOrDefault();
+        // Find the EditorView in the content area
+        return this.GetVisualDescendants().OfType<EditorView>().FirstOrDefault();
     }
 
     private void TabItem_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is Border border && border.Tag is TabViewModel tab)
+        if (sender is Grid grid && grid.Tag is TabViewModel tab)
         {
-            if (e.GetCurrentPoint(border).Properties.IsLeftButtonPressed)
+            if (e.GetCurrentPoint(grid).Properties.IsLeftButtonPressed)
             {
                 _draggedTab = tab;
-                _draggedBorder = border;
+                _draggedElement = grid;
                 _dragStartPoint = e.GetPosition(this);
                 _isDragging = false;
                 _draggedOriginalIndex = ViewModel?.Tabs.IndexOf(tab) ?? -1;
@@ -181,7 +175,7 @@ public partial class MainWindow : Window
 
     private void Window_PointerMoved(object? sender, PointerEventArgs e)
     {
-        if (_draggedTab == null || _draggedBorder == null) return;
+        if (_draggedTab == null || _draggedElement == null) return;
 
         var currentPoint = e.GetPosition(this);
         var diff = currentPoint - _dragStartPoint;
@@ -211,9 +205,9 @@ public partial class MainWindow : Window
         }
 
         // Hide original tab visually
-        if (_draggedBorder != null)
+        if (_draggedElement != null)
         {
-            _draggedBorder.Opacity = 0.3;
+            _draggedElement.Opacity = 0.3;
         }
     }
 
@@ -228,7 +222,7 @@ public partial class MainWindow : Window
 
     private void UpdateDropIndicator(Point mousePos)
     {
-        if (ViewModel == null || _tabControl == null) return;
+        if (ViewModel == null || _tabStrip == null) return;
 
         // Find all tab item containers
         var tabItems = GetTabItemContainers();
@@ -267,7 +261,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void UpdateTabMargins(List<TabItem> tabItems, int dropIndex)
+    private void UpdateTabMargins(List<ListBoxItem> tabItems, int dropIndex)
     {
         for (int i = 0; i < tabItems.Count; i++)
         {
@@ -297,26 +291,15 @@ public partial class MainWindow : Window
         }
     }
 
-    private List<TabItem> GetTabItemContainers()
+    private List<ListBoxItem> GetTabItemContainers()
     {
-        var result = new List<TabItem>();
-        if (_tabControl == null) return result;
+        var result = new List<ListBoxItem>();
+        if (_tabStrip == null) return result;
 
-        // Find the ItemsPresenter and get tab items
-        var presenter = _tabControl.GetVisualDescendants().OfType<ItemsPresenter>().FirstOrDefault();
-        if (presenter != null)
+        // Find all ListBoxItems in the tab strip
+        foreach (var item in _tabStrip.GetVisualDescendants().OfType<ListBoxItem>())
         {
-            var panel = presenter.GetVisualChildren().FirstOrDefault();
-            if (panel != null)
-            {
-                foreach (var child in panel.GetVisualChildren())
-                {
-                    if (child is TabItem tabItem)
-                    {
-                        result.Add(tabItem);
-                    }
-                }
-            }
+            result.Add(item);
         }
 
         return result;
@@ -341,6 +324,9 @@ public partial class MainWindow : Window
                 ViewModel.Tabs.Move(sourceIndex, targetIndex);
                 ViewModel.SaveState();
             }
+
+            // Select the dragged tab after drop
+            ViewModel.SelectedTab = _draggedTab;
         }
 
         EndDrag();
@@ -355,9 +341,9 @@ public partial class MainWindow : Window
         }
 
         // Restore original tab opacity
-        if (_draggedBorder != null)
+        if (_draggedElement != null)
         {
-            _draggedBorder.Opacity = 1.0;
+            _draggedElement.Opacity = 1.0;
         }
 
         // Reset all tab margins
@@ -368,7 +354,7 @@ public partial class MainWindow : Window
         }
 
         _draggedTab = null;
-        _draggedBorder = null;
+        _draggedElement = null;
         _isDragging = false;
         _draggedOriginalIndex = -1;
         _currentDropIndex = -1;

@@ -366,6 +366,12 @@ public class TabViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(SyntaxName));
     }
 
+    public void RefreshSyntaxHighlighting()
+    {
+        // Re-fetch highlighting definition (useful after theme change)
+        SyntaxHighlighting = _syntaxService.GetHighlightingByName(_syntaxName);
+    }
+
     private void ScheduleCacheSave()
     {
         _cacheTimer.Stop();
