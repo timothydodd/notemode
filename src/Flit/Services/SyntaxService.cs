@@ -24,17 +24,22 @@ public class SyntaxService
     private static readonly Color DraculaLink = Color.Parse("#8be9fd");
 
     // Light theme colors (VS Code Light+ inspired)
-    private static readonly Color LightForeground = Color.Parse("#1e1e1e");
-    private static readonly Color LightComment = Color.Parse("#008000");      // Green comments
-    private static readonly Color LightCyan = Color.Parse("#267f99");         // Teal for types/classes
-    private static readonly Color LightGreen = Color.Parse("#795e26");        // Brown for functions
-    private static readonly Color LightOrange = Color.Parse("#e65100");       // Orange for parameters/variables
-    private static readonly Color LightPink = Color.Parse("#af00db");         // Purple for keywords
-    private static readonly Color LightPurple = Color.Parse("#0000ff");       // Blue for keywords
-    private static readonly Color LightRed = Color.Parse("#a31515");          // Red for errors
-    private static readonly Color LightYellow = Color.Parse("#a31515");       // Brown/red for strings
-    private static readonly Color LightLink = Color.Parse("#0066cc");         // Blue for links
-    private static readonly Color LightNumber = Color.Parse("#098658");       // Green for numbers
+    private static readonly Color LightForeground = Color.Parse("#000000");
+    private static readonly Color LightComment = Color.Parse("#008000");
+    private static readonly Color LightString = Color.Parse("#a31515");
+    private static readonly Color LightKeyword = Color.Parse("#0000ff");
+    private static readonly Color LightType = Color.Parse("#267f99");
+    private static readonly Color LightFunction = Color.Parse("#795e26");
+    private static readonly Color LightNumber = Color.Parse("#098658");
+    private static readonly Color LightVariable = Color.Parse("#001080");
+    private static readonly Color LightOperator = Color.Parse("#000000");
+    private static readonly Color LightPreprocessor = Color.Parse("#0000ff");
+    private static readonly Color LightAttribute = Color.Parse("#267f99");
+    private static readonly Color LightTag = Color.Parse("#800000");
+    private static readonly Color LightAttributeName = Color.Parse("#ff0000");
+    private static readonly Color LightAttributeValue = Color.Parse("#0000ff");
+    private static readonly Color LightError = Color.Parse("#ff0000");
+    private static readonly Color LightLink = Color.Parse("#0066cc");
 
     private bool _useLightTheme;
 
@@ -143,31 +148,42 @@ public class SyntaxService
             ApplyThemeColor(color);
         }
 
-        // Also apply to main rule set colors
+        // Apply to main rule set and all nested rule sets
         if (definition.MainRuleSet != null)
         {
-            foreach (var rule in definition.MainRuleSet.Rules)
+            ApplyThemeColorsToRuleSet(definition.MainRuleSet);
+        }
+    }
+
+    private void ApplyThemeColorsToRuleSet(HighlightingRuleSet ruleSet)
+    {
+        foreach (var rule in ruleSet.Rules)
+        {
+            if (rule.Color != null)
             {
-                if (rule.Color != null)
-                {
-                    ApplyThemeColor(rule.Color);
-                }
+                ApplyThemeColor(rule.Color);
+            }
+        }
+
+        foreach (var span in ruleSet.Spans)
+        {
+            if (span.SpanColor != null)
+            {
+                ApplyThemeColor(span.SpanColor);
+            }
+            if (span.StartColor != null)
+            {
+                ApplyThemeColor(span.StartColor);
+            }
+            if (span.EndColor != null)
+            {
+                ApplyThemeColor(span.EndColor);
             }
 
-            foreach (var span in definition.MainRuleSet.Spans)
+            // Recursively process nested rule sets within spans
+            if (span.RuleSet != null)
             {
-                if (span.SpanColor != null)
-                {
-                    ApplyThemeColor(span.SpanColor);
-                }
-                if (span.StartColor != null)
-                {
-                    ApplyThemeColor(span.StartColor);
-                }
-                if (span.EndColor != null)
-                {
-                    ApplyThemeColor(span.EndColor);
-                }
+                ApplyThemeColorsToRuleSet(span.RuleSet);
             }
         }
     }
@@ -176,102 +192,179 @@ public class SyntaxService
     {
         var name = color.Name?.ToLowerInvariant() ?? "";
 
-        // Select colors based on current theme
-        var foreground = _useLightTheme ? LightForeground : DraculaForeground;
-        var comment = _useLightTheme ? LightComment : DraculaComment;
-        var cyan = _useLightTheme ? LightCyan : DraculaCyan;
-        var green = _useLightTheme ? LightGreen : DraculaGreen;
-        var orange = _useLightTheme ? LightOrange : DraculaOrange;
-        var pink = _useLightTheme ? LightPink : DraculaPink;
-        var purple = _useLightTheme ? LightPurple : DraculaPurple;
-        var red = _useLightTheme ? LightRed : DraculaRed;
-        var yellow = _useLightTheme ? LightYellow : DraculaYellow;
-        var link = _useLightTheme ? LightLink : DraculaLink;
-        var number = _useLightTheme ? LightNumber : DraculaPurple;
+        if (_useLightTheme)
+        {
+            ApplyLightThemeColor(color, name);
+        }
+        else
+        {
+            ApplyDarkThemeColor(color, name);
+        }
+    }
 
-        // Map common highlighting names to theme colors
+    private void ApplyLightThemeColor(HighlightingColor color, string name)
+    {
+        // VS Code Light+ inspired colors
         if (name.Contains("comment"))
         {
-            color.Foreground = new SimpleHighlightingBrush(comment);
+            color.Foreground = new SimpleHighlightingBrush(LightComment);
             color.FontStyle = FontStyle.Italic;
         }
         else if (name.Contains("string") || name.Contains("char"))
         {
-            color.Foreground = new SimpleHighlightingBrush(yellow);
+            color.Foreground = new SimpleHighlightingBrush(LightString);
         }
-        else if (name.Contains("keyword") || name.Contains("keywords"))
+        else if (name.Contains("keyword") || name.Contains("visibility") || name.Contains("modifier") || name.Contains("access"))
         {
-            color.Foreground = new SimpleHighlightingBrush(pink);
+            color.Foreground = new SimpleHighlightingBrush(LightKeyword);
         }
         else if (name.Contains("number") || name.Contains("digit"))
         {
-            color.Foreground = new SimpleHighlightingBrush(number);
+            color.Foreground = new SimpleHighlightingBrush(LightNumber);
         }
         else if (name.Contains("type") || name.Contains("class") || name.Contains("struct") || name.Contains("interface") || name.Contains("enum"))
         {
-            color.Foreground = new SimpleHighlightingBrush(cyan);
+            color.Foreground = new SimpleHighlightingBrush(LightType);
         }
         else if (name.Contains("method") || name.Contains("function"))
         {
-            color.Foreground = new SimpleHighlightingBrush(green);
+            color.Foreground = new SimpleHighlightingBrush(LightFunction);
+        }
+        else if (name.Contains("variable") || name.Contains("parameter") || name.Contains("field"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(LightVariable);
         }
         else if (name.Contains("operator") || name.Contains("punctuation"))
         {
-            color.Foreground = new SimpleHighlightingBrush(pink);
+            color.Foreground = new SimpleHighlightingBrush(LightOperator);
         }
         else if (name.Contains("preprocessor") || name.Contains("directive"))
         {
-            color.Foreground = new SimpleHighlightingBrush(pink);
-        }
-        else if (name.Contains("attribute"))
-        {
-            color.Foreground = new SimpleHighlightingBrush(green);
+            color.Foreground = new SimpleHighlightingBrush(LightPreprocessor);
         }
         else if (name.Contains("namespace") || name.Contains("using"))
         {
-            color.Foreground = new SimpleHighlightingBrush(pink);
-        }
-        else if (name.Contains("visibility") || name.Contains("modifier") || name.Contains("access"))
-        {
-            color.Foreground = new SimpleHighlightingBrush(pink);
-        }
-        else if (name.Contains("variable") || name.Contains("parameter"))
-        {
-            color.Foreground = new SimpleHighlightingBrush(orange);
+            color.Foreground = new SimpleHighlightingBrush(LightForeground);
         }
         else if (name.Contains("constant") || name.Contains("bool"))
         {
-            color.Foreground = new SimpleHighlightingBrush(purple);
+            color.Foreground = new SimpleHighlightingBrush(LightKeyword);
         }
         else if (name.Contains("tag") || name.Contains("element"))
         {
-            color.Foreground = new SimpleHighlightingBrush(pink);
+            color.Foreground = new SimpleHighlightingBrush(LightTag);
         }
         else if (name.Contains("attributename"))
         {
-            color.Foreground = new SimpleHighlightingBrush(green);
+            color.Foreground = new SimpleHighlightingBrush(LightAttributeName);
         }
         else if (name.Contains("attributevalue"))
         {
-            color.Foreground = new SimpleHighlightingBrush(yellow);
+            color.Foreground = new SimpleHighlightingBrush(LightAttributeValue);
+        }
+        else if (name.Contains("attribute"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(LightAttribute);
         }
         else if (name.Contains("entity") || name.Contains("escape"))
         {
-            color.Foreground = new SimpleHighlightingBrush(purple);
+            color.Foreground = new SimpleHighlightingBrush(LightKeyword);
         }
         else if (name.Contains("error") || name.Contains("invalid"))
         {
-            color.Foreground = new SimpleHighlightingBrush(red);
+            color.Foreground = new SimpleHighlightingBrush(LightError);
         }
         else if (name.Contains("link") || name.Contains("hyperlink") || name.Contains("url") || name.Contains("uri"))
         {
-            color.Foreground = new SimpleHighlightingBrush(link);
+            color.Foreground = new SimpleHighlightingBrush(LightLink);
             color.Underline = true;
         }
         else
         {
-            // Default foreground for any unmatched colors
-            color.Foreground = new SimpleHighlightingBrush(foreground);
+            color.Foreground = new SimpleHighlightingBrush(LightForeground);
+        }
+    }
+
+    private void ApplyDarkThemeColor(HighlightingColor color, string name)
+    {
+        // Dracula theme colors
+        if (name.Contains("comment"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(DraculaComment);
+            color.FontStyle = FontStyle.Italic;
+        }
+        else if (name.Contains("string") || name.Contains("char"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(DraculaYellow);
+        }
+        else if (name.Contains("keyword") || name.Contains("visibility") || name.Contains("modifier") || name.Contains("access"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(DraculaPink);
+        }
+        else if (name.Contains("number") || name.Contains("digit"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(DraculaPurple);
+        }
+        else if (name.Contains("type") || name.Contains("class") || name.Contains("struct") || name.Contains("interface") || name.Contains("enum"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(DraculaCyan);
+        }
+        else if (name.Contains("method") || name.Contains("function"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(DraculaGreen);
+        }
+        else if (name.Contains("variable") || name.Contains("parameter") || name.Contains("field"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(DraculaOrange);
+        }
+        else if (name.Contains("operator") || name.Contains("punctuation"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(DraculaPink);
+        }
+        else if (name.Contains("preprocessor") || name.Contains("directive"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(DraculaPink);
+        }
+        else if (name.Contains("namespace") || name.Contains("using"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(DraculaPink);
+        }
+        else if (name.Contains("constant") || name.Contains("bool"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(DraculaPurple);
+        }
+        else if (name.Contains("tag") || name.Contains("element"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(DraculaPink);
+        }
+        else if (name.Contains("attributename"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(DraculaGreen);
+        }
+        else if (name.Contains("attributevalue"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(DraculaYellow);
+        }
+        else if (name.Contains("attribute"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(DraculaGreen);
+        }
+        else if (name.Contains("entity") || name.Contains("escape"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(DraculaPurple);
+        }
+        else if (name.Contains("error") || name.Contains("invalid"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(DraculaRed);
+        }
+        else if (name.Contains("link") || name.Contains("hyperlink") || name.Contains("url") || name.Contains("uri"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(DraculaLink);
+            color.Underline = true;
+        }
+        else
+        {
+            color.Foreground = new SimpleHighlightingBrush(DraculaForeground);
         }
     }
 
