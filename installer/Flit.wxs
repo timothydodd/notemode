@@ -18,8 +18,8 @@
     <!-- UI for installation dialogs -->
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
 
-    <!-- License (optional - remove if no license file) -->
-    <!-- <WixVariable Id="WixUILicenseRtf" Value="license.rtf" /> -->
+    <!-- License shown during installation -->
+    <WixVariable Id="WixUILicenseRtf" Value="installer\license.rtf" />
 
   </Package>
 
