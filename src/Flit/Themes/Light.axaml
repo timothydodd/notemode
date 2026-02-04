@@ -62,7 +62,7 @@
         <Setter Property="FontFamily" Value="Consolas"/>
         <Setter Property="ShowLineNumbers" Value="True"/>
         <Setter Property="Padding" Value="8,10,10,10"/>
-        <Setter Property="SearchResultsBrush" Value="#FFFF00"/>
+        <Setter Property="SearchResultsBrush" Value="#FFCC66"/>
     </Style>
 
     <Style Selector="Button">
