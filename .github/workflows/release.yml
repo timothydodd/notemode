@@ -45,7 +45,9 @@ jobs:
           Compress-Archive -Path publish/win-x64/* -DestinationPath Flit-${{ steps.version.outputs.VERSION }}-win-x64.zip
 
       - name: Install WiX Toolset
-        run: dotnet tool install --global wix
+        run: |
+          dotnet tool install --global wix
+          wix extension add -g WixToolset.UI.wixext
 
       - name: Build MSI installer
         shell: pwsh
