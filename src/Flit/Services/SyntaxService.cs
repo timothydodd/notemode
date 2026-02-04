@@ -1,10 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using Avalonia.Media;
+﻿using Avalonia.Media;
 using AvaloniaEdit.Highlighting;
 
 namespace Flit.Services;
+
+public class LanguageInfo
+{
+    public string Name { get; set; } = "";
+    public string[] Extensions { get; set; } = Array.Empty<string>();
+}
 
 public class SyntaxService
 {
@@ -284,5 +287,81 @@ public class SyntaxService
         }
 
         return null;
+    }
+
+    public string? GetSyntaxNameForFile(string? filePath)
+    {
+        if (string.IsNullOrEmpty(filePath))
+            return null;
+
+        var extension = Path.GetExtension(filePath);
+        if (string.IsNullOrEmpty(extension) || extension.Equals(".txt", StringComparison.OrdinalIgnoreCase))
+            return "Plain Text";
+
+        if (_extensionToSyntax.TryGetValue(extension, out var name))
+            return name;
+
+        var def = HighlightingManager.Instance.GetDefinitionByExtension(extension);
+        return def?.Name ?? "Plain Text";
+    }
+
+    public IHighlightingDefinition? GetHighlightingByName(string? syntaxName)
+    {
+        if (string.IsNullOrEmpty(syntaxName) || syntaxName == "Plain Text")
+            return null;
+
+        if (_cachedDefinitions.TryGetValue(syntaxName, out var cachedDef))
+            return cachedDef;
+
+        var definition = HighlightingManager.Instance.GetDefinition(syntaxName);
+        if (definition != null)
+        {
+            ApplyThemeColors(definition);
+            _cachedDefinitions[syntaxName] = definition;
+        }
+
+        return definition;
+    }
+
+    public IEnumerable<LanguageInfo> GetAllLanguages()
+    {
+        var languages = new List<LanguageInfo>
+        {
+            new LanguageInfo { Name = "Plain Text", Extensions = new[] { ".txt" } }
+        };
+
+        // Add languages from our extension map
+        var grouped = _extensionToSyntax
+            .GroupBy(kvp => kvp.Value)
+            .ToDictionary(g => g.Key, g => g.Select(kvp => kvp.Key).ToArray());
+
+        foreach (var kvp in grouped)
+        {
+            languages.Add(new LanguageInfo { Name = kvp.Key, Extensions = kvp.Value });
+        }
+
+        // Add languages from HighlightingManager that we don't already have
+        foreach (var def in HighlightingManager.Instance.HighlightingDefinitions)
+        {
+            if (!languages.Any(l => l.Name.Equals(def.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                try
+                {
+                    languages.Add(new LanguageInfo
+                    {
+                        Name = def.Name,
+                        Extensions = def.Properties.TryGetValue("Extensions", out var ext)
+                            ? ext.Split(';')
+                            : Array.Empty<string>()
+                    });
+                }
+                catch
+                {
+                    // Ignore any errors
+                }
+            }
+        }
+
+        return languages.OrderBy(l => l.Name == "Plain Text" ? "" : l.Name);
     }
 }

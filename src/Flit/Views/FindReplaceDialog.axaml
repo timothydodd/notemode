@@ -46,10 +46,10 @@
 
         <!-- Buttons Row -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-            <Button Content="Find Previous" Click="FindPrevious_Click" Width="100"/>
-            <Button Content="Find Next" Click="FindNext_Click" Width="90"/>
-            <Button Content="Replace" Click="Replace_Click" Width="80"/>
-            <Button Content="Replace All" Click="ReplaceAll_Click" Width="90"/>
+            <Button Content="Find Previous" Click="FindPrevious_Click"/>
+            <Button Content="Find Next" Click="FindNext_Click" Classes="primary"/>
+            <Button Content="Replace" Click="Replace_Click"/>
+            <Button Content="Replace All" Click="ReplaceAll_Click"/>
         </StackPanel>
     </StackPanel>
 </Window>

@@ -8,6 +8,8 @@
         <SolidColorBrush x:Key="TitleBarForeground" Color="#1e1e1e"/>
         <SolidColorBrush x:Key="StatusBarText" Color="#666666"/>
         <SolidColorBrush x:Key="StatusBarSeparator" Color="#c8c8c8"/>
+        <SolidColorBrush x:Key="StatusBarInputBackground" Color="#ffffff"/>
+        <SolidColorBrush x:Key="StatusBarInputBorder" Color="#c8c8c8"/>
         <SolidColorBrush x:Key="DragHandleColor" Color="#858585"/>
         <SolidColorBrush x:Key="DragGhostBackground" Color="#ffffff"/>
         <SolidColorBrush x:Key="DragGhostBorder" Color="#0078d4"/>
@@ -67,11 +69,40 @@
         <Setter Property="Background" Value="#e0e0e0"/>
         <Setter Property="Foreground" Value="#1e1e1e"/>
         <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="Padding" Value="10,5"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="FontSize" Value="12"/>
     </Style>
 
-    <Style Selector="Button:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="#c8c8c8"/>
+    <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#e0e0e0"/>
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#d0d0d0"/>
+    </Style>
+
+    <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#c0c0c0"/>
+    </Style>
+
+    <!-- Primary button style (accent color) -->
+    <Style Selector="Button.primary">
+        <Setter Property="Background" Value="#0078d4"/>
+        <Setter Property="Foreground" Value="#ffffff"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+
+    <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#0078d4"/>
+    </Style>
+
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#1a86d9"/>
+    </Style>
+
+    <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#006abc"/>
     </Style>
 
     <Style Selector="Menu">

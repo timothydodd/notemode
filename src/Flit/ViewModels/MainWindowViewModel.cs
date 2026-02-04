@@ -91,8 +91,19 @@ public class MainWindowViewModel : INotifyPropertyChanged
             {
                 _fontSize = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(ZoomPercentage));
                 SaveState();
             }
+        }
+    }
+
+    public int ZoomPercentage
+    {
+        get => (int)Math.Round((_fontSize / 10.0) * 100);
+        set
+        {
+            var newFontSize = Math.Clamp((value / 100.0) * 10, 6, 72);
+            FontSize = newFontSize;
         }
     }
 

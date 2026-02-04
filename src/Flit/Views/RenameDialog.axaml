@@ -12,8 +12,8 @@
         <TextBlock Text="Enter new name:"/>
         <TextBox x:Name="NameTextBox"/>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-            <Button Content="Cancel" Click="Cancel_Click" Width="80"/>
-            <Button Content="OK" Click="OK_Click" Width="80" IsDefault="True"/>
+            <Button Content="Cancel" Click="Cancel_Click"/>
+            <Button Content="OK" Click="OK_Click" Classes="primary" IsDefault="True"/>
         </StackPanel>
     </StackPanel>
 </Window>

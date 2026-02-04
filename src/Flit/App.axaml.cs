@@ -20,6 +20,8 @@ public partial class App : Application
 
     public bool IsLightTheme { get; private set; }
 
+    public SyntaxService? GetSyntaxService() => _syntaxService;
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);

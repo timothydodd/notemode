@@ -144,18 +144,48 @@
                     Background="{DynamicResource TitleBarBackground}"
                     Height="24"
                     Padding="8,0">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="16">
-                    <TextBlock Foreground="{DynamicResource StatusBarText}" FontSize="11">
-                        <Run Text="Ln "/>
-                        <Run Text="{Binding StatusBar.Line}"/>
-                        <Run Text=", Col "/>
-                        <Run Text="{Binding StatusBar.Column}"/>
-                    </TextBlock>
-                    <TextBlock Text="|" Foreground="{DynamicResource StatusBarSeparator}" FontSize="11"/>
-                    <TextBlock Text="{Binding StatusBar.Encoding}" Foreground="{DynamicResource StatusBarText}" FontSize="11"/>
-                    <TextBlock Text="|" Foreground="{DynamicResource StatusBarSeparator}" FontSize="11"/>
-                    <TextBlock Text="{Binding StatusBar.LineEnding}" Foreground="{DynamicResource StatusBarText}" FontSize="11"/>
-                </StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Zoom Input (Left) -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="2">
+                        <TextBox Text="{Binding ZoomPercentage}"
+                                 Width="40"
+                                 Height="18"
+                                 FontSize="11"
+                                 Padding="4,0"
+                                 VerticalContentAlignment="Center"
+                                 Background="{DynamicResource StatusBarInputBackground}"
+                                 Foreground="{DynamicResource StatusBarText}"
+                                 BorderThickness="1"
+                                 BorderBrush="{DynamicResource StatusBarInputBorder}"/>
+                        <TextBlock Text="%" Foreground="{DynamicResource StatusBarText}" FontSize="11" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Right side status info -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="16" HorizontalAlignment="Right">
+                        <TextBlock Foreground="{DynamicResource StatusBarText}" FontSize="11">
+                            <Run Text="Ln "/>
+                            <Run Text="{Binding StatusBar.Line}"/>
+                            <Run Text=", Col "/>
+                            <Run Text="{Binding StatusBar.Column}"/>
+                        </TextBlock>
+                        <TextBlock Text="|" Foreground="{DynamicResource StatusBarSeparator}" FontSize="11"/>
+                        <TextBlock Text="{Binding StatusBar.Encoding}" Foreground="{DynamicResource StatusBarText}" FontSize="11"/>
+                        <TextBlock Text="|" Foreground="{DynamicResource StatusBarSeparator}" FontSize="11"/>
+                        <TextBlock Text="{Binding StatusBar.LineEnding}" Foreground="{DynamicResource StatusBarText}" FontSize="11"/>
+                        <TextBlock Text="|" Foreground="{DynamicResource StatusBarSeparator}" FontSize="11"/>
+                        <TextBlock x:Name="LanguageButton"
+                                   Text="{Binding SelectedTab.SyntaxName, FallbackValue='Plain Text'}"
+                                   Foreground="{DynamicResource StatusBarText}"
+                                   FontSize="11"
+                                   Cursor="Hand"
+                                   PointerPressed="LanguageButton_PointerPressed"/>
+                    </StackPanel>
+                </Grid>
             </Border>
 
             <!-- Tab Bar and Content -->

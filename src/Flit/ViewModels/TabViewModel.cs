@@ -20,6 +20,7 @@ public class TabViewModel : INotifyPropertyChanged
     private string _content = string.Empty;
     private bool _isDirty;
     private IHighlightingDefinition? _syntaxHighlighting;
+    private string _syntaxName = "Plain Text";
     private string _originalContent = string.Empty;
     private bool _isContentLoaded;
     private bool _hasCachedChanges;
@@ -144,6 +145,20 @@ public class TabViewModel : INotifyPropertyChanged
             if (_syntaxHighlighting != value)
             {
                 _syntaxHighlighting = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public string SyntaxName
+    {
+        get => _syntaxName;
+        set
+        {
+            if (_syntaxName != value)
+            {
+                _syntaxName = value;
+                SyntaxHighlighting = _syntaxService.GetHighlightingByName(value);
                 OnPropertyChanged();
             }
         }
@@ -336,7 +351,10 @@ public class TabViewModel : INotifyPropertyChanged
 
     private void UpdateSyntaxHighlighting()
     {
-        SyntaxHighlighting = _syntaxService.GetHighlighting(FilePath);
+        var syntaxName = _syntaxService.GetSyntaxNameForFile(FilePath) ?? "Plain Text";
+        _syntaxName = syntaxName;
+        SyntaxHighlighting = _syntaxService.GetHighlightingByName(syntaxName);
+        OnPropertyChanged(nameof(SyntaxName));
     }
 
     private void ScheduleCacheSave()
