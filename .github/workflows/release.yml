@@ -62,7 +62,7 @@ jobs:
 
           wix build installer/Flit.wxs `
             -d ProductVersion=$msiVersion `
-            -d PublishDir=../publish/win-x64 `
+            -d "PublishDir=${{ github.workspace }}\publish\win-x64" `
             -o Flit-${{ steps.version.outputs.VERSION }}-win-x64.msi `
             -ext WixToolset.UI.wixext
 
