@@ -10,6 +10,10 @@
     <MajorUpgrade DowngradeErrorMessage="A newer version of Flit is already installed." />
     <MediaTemplate EmbedCab="yes" />
 
+    <!-- Icon for shortcuts and Add/Remove Programs -->
+    <Icon Id="FlitIcon.exe" SourceFile="$(PublishDir)\Flit.exe" />
+    <Property Id="ARPPRODUCTICON" Value="FlitIcon.exe" />
+
     <Feature Id="ProductFeature" Title="Flit" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="ContextMenuComponents" />
@@ -39,6 +43,7 @@
                     Directory="ProgramMenuFolder"
                     Name="Flit"
                     WorkingDirectory="INSTALLFOLDER"
+                    Icon="FlitIcon.exe"
                     Advertise="yes" />
         </File>
       </Component>
