@@ -1,0 +1,248 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Flit.ViewModels"
+        xmlns:views="using:Flit.Views"
+        x:Class="Flit.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        x:Name="MainWin"
+        Title="Flit"
+        Icon="avares://Flit/Assets/flit-icon.ico"
+        Width="1200"
+        Height="800"
+        MinWidth="400"
+        MinHeight="300"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="32">
+
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Ctrl+N" Command="{Binding NewTabCommand}" />
+        <KeyBinding Gesture="Ctrl+O" Command="{Binding #MainWin.OpenFileCommand}" />
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding #MainWin.SaveFileCommand}" />
+        <KeyBinding Gesture="Ctrl+Shift+S" Command="{Binding #MainWin.SaveAsCommand}" />
+        <KeyBinding Gesture="Ctrl+Shift+A" Command="{Binding SaveAllCommand}" />
+        <KeyBinding Gesture="Ctrl+W" Command="{Binding #MainWin.CloseTabWithPromptCommand}" CommandParameter="{Binding SelectedTab}" />
+        <KeyBinding Gesture="Ctrl+Shift+W" Command="{Binding ToggleWhitespaceCommand}" />
+        <KeyBinding Gesture="Ctrl+Z" Command="{Binding #MainWin.UndoCommand}" />
+        <KeyBinding Gesture="Ctrl+Y" Command="{Binding #MainWin.RedoCommand}" />
+        <KeyBinding Gesture="Ctrl+F" Command="{Binding #MainWin.FindCommand}" />
+        <KeyBinding Gesture="Ctrl+Shift+F" Command="{Binding #MainWin.FindInTabsCommand}" />
+        <KeyBinding Gesture="Ctrl+H" Command="{Binding #MainWin.ReplaceCommand}" />
+    </Window.KeyBindings>
+
+    <Panel>
+        <DockPanel>
+            <!-- Custom Title Bar -->
+            <Border DockPanel.Dock="Top"
+                    Background="{DynamicResource TitleBarBackground}"
+                    Height="32">
+                <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+                    <!-- App Icon -->
+                    <Image Grid.Column="0"
+                           Source="avares://Flit/Assets/flit-icon.ico"
+                           Width="16" Height="16"
+                           Margin="8,0,4,0"
+                           VerticalAlignment="Center"/>
+
+                    <!-- Menu Bar -->
+                    <Menu Grid.Column="1" VerticalAlignment="Center" Background="Transparent">
+                        <MenuItem Header="_File">
+                            <MenuItem Header="_New" Command="{Binding NewTabCommand}" InputGesture="Ctrl+N" />
+                            <MenuItem Header="_Open..." Click="OpenFile_Click" InputGesture="Ctrl+O" />
+                            <Separator />
+                            <MenuItem Header="_Save" Click="SaveFile_Click" InputGesture="Ctrl+S" />
+                            <MenuItem Header="Save _As..." Click="SaveAs_Click" InputGesture="Ctrl+Shift+S" />
+                            <MenuItem Header="Save A_ll" Command="{Binding SaveAllCommand}" InputGesture="Ctrl+Shift+A" />
+                            <Separator />
+                            <MenuItem Header="_Close Tab" Command="{Binding #MainWin.CloseTabWithPromptCommand}" CommandParameter="{Binding SelectedTab}" InputGesture="Ctrl+W" />
+                            <MenuItem Header="Close _All" Command="{Binding #MainWin.CloseAllWithPromptCommand}" />
+                            <Separator />
+                            <MenuItem Header="E_xit" Click="Exit_Click" InputGesture="Alt+F4" />
+                        </MenuItem>
+                        <MenuItem Header="_Edit">
+                            <MenuItem Header="_Undo" Click="Undo_Click" InputGesture="Ctrl+Z" />
+                            <MenuItem Header="_Redo" Click="Redo_Click" InputGesture="Ctrl+Y" />
+                            <Separator />
+                            <MenuItem Header="_Find..." Click="Find_Click" InputGesture="Ctrl+F" />
+                            <MenuItem Header="Find in All _Tabs..." Click="FindInTabs_Click" InputGesture="Ctrl+Shift+F" />
+                            <MenuItem Header="_Replace..." Click="Replace_Click" InputGesture="Ctrl+H" />
+                        </MenuItem>
+                        <MenuItem Header="_View">
+                            <MenuItem Header="Show _Line Numbers"
+                                      Command="{Binding ToggleLineNumbersCommand}">
+                                <MenuItem.Icon>
+                                    <CheckBox IsChecked="{Binding ShowLineNumbers}"
+                                              BorderThickness="0"
+                                              IsHitTestVisible="False"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Show _Whitespace"
+                                      Command="{Binding ToggleWhitespaceCommand}"
+                                      InputGesture="Ctrl+Shift+W">
+                                <MenuItem.Icon>
+                                    <CheckBox IsChecked="{Binding ShowWhitespace}"
+                                              BorderThickness="0"
+                                              IsHitTestVisible="False"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator />
+                            <MenuItem Header="_Light Theme"
+                                      Command="{Binding ToggleLightThemeCommand}">
+                                <MenuItem.Icon>
+                                    <CheckBox IsChecked="{Binding UseLightTheme}"
+                                              BorderThickness="0"
+                                              IsHitTestVisible="False"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                        </MenuItem>
+                    </Menu>
+
+                    <!-- Draggable Title Area -->
+                    <Border Grid.Column="2"
+                            Background="Transparent"
+                            PointerPressed="TitleBar_PointerPressed" />
+
+                    <!-- Window Controls -->
+                    <StackPanel Grid.Column="3"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Stretch">
+                        <Button Content="─"
+                                Click="Minimize_Click"
+                                Width="46" Height="32"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Foreground="{DynamicResource TitleBarForeground}"
+                                FontSize="12"
+                                VerticalContentAlignment="Center"
+                                HorizontalContentAlignment="Center"/>
+                        <Button x:Name="MaximizeButton"
+                                Content="□"
+                                Click="MaximizeRestore_Click"
+                                Width="46" Height="32"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Foreground="{DynamicResource TitleBarForeground}"
+                                FontSize="12"
+                                VerticalContentAlignment="Center"
+                                HorizontalContentAlignment="Center"/>
+                        <Button Content="✕"
+                                Click="Close_Click"
+                                Width="46" Height="32"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Foreground="{DynamicResource TitleBarForeground}"
+                                FontSize="12"
+                                VerticalContentAlignment="Center"
+                                HorizontalContentAlignment="Center"
+                                Classes="close"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Status Bar -->
+            <Border DockPanel.Dock="Bottom"
+                    Background="{DynamicResource TitleBarBackground}"
+                    Height="24"
+                    Padding="8,0">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="16">
+                    <TextBlock Foreground="{DynamicResource StatusBarText}" FontSize="11">
+                        <Run Text="Ln "/>
+                        <Run Text="{Binding StatusBar.Line}"/>
+                        <Run Text=", Col "/>
+                        <Run Text="{Binding StatusBar.Column}"/>
+                    </TextBlock>
+                    <TextBlock Text="|" Foreground="{DynamicResource StatusBarSeparator}" FontSize="11"/>
+                    <TextBlock Text="{Binding StatusBar.Encoding}" Foreground="{DynamicResource StatusBarText}" FontSize="11"/>
+                    <TextBlock Text="|" Foreground="{DynamicResource StatusBarSeparator}" FontSize="11"/>
+                    <TextBlock Text="{Binding StatusBar.LineEnding}" Foreground="{DynamicResource StatusBarText}" FontSize="11"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Tab Bar and Content -->
+            <TabControl x:Name="TabControl"
+                        ItemsSource="{Binding Tabs}"
+                        SelectedItem="{Binding SelectedTab}"
+                        Padding="0">
+                <TabControl.ItemTemplate>
+                    <DataTemplate DataType="vm:TabViewModel">
+                        <Border x:Name="TabBorder"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                BorderThickness="1"
+                                CornerRadius="3"
+                                Padding="2"
+                                Tag="{Binding}"
+                                PointerPressed="TabItem_PointerPressed">
+                            <Border.ContextMenu>
+                                <ContextMenu x:DataType="vm:TabViewModel">
+                                    <MenuItem Header="Close" Command="{Binding #MainWin.CloseTabWithPromptCommand}" CommandParameter="{Binding}" />
+                                    <MenuItem Header="Close Others" Command="{Binding #MainWin.CloseOthersWithPromptCommand}" CommandParameter="{Binding}" />
+                                    <MenuItem Header="Close to Right" Command="{Binding #MainWin.CloseToRightWithPromptCommand}" CommandParameter="{Binding}" />
+                                    <MenuItem Header="Close to Left" Command="{Binding #MainWin.CloseToLeftWithPromptCommand}" CommandParameter="{Binding}" />
+                                    <MenuItem Header="Close Unchanged" Command="{Binding #MainWin.((vm:MainWindowViewModel)DataContext).CloseUnchangedCommand}" />
+                                    <MenuItem Header="Close All" Command="{Binding #MainWin.CloseAllWithPromptCommand}" />
+                                    <Separator />
+                                    <MenuItem Header="Save" Tag="{Binding}" Click="SaveTab_Click" />
+                                    <MenuItem Header="Save As..." Tag="{Binding}" Click="SaveTabAs_Click" />
+                                    <Separator />
+                                    <MenuItem Header="Rename..." Tag="{Binding}" Click="RenameTab_Click" />
+                                </ContextMenu>
+                            </Border.ContextMenu>
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <!-- Drag Handle -->
+                                <TextBlock Text="⋮⋮"
+                                           FontSize="10"
+                                           Foreground="{DynamicResource DragHandleColor}"
+                                           VerticalAlignment="Center"
+                                           Cursor="SizeAll"
+                                           Margin="0,0,2,0"
+                                           Opacity="0.6"/>
+                                <TextBlock Text="{Binding DisplayTitle}" VerticalAlignment="Center" />
+                                <Button Content="x"
+                                        Command="{Binding #MainWin.CloseTabWithPromptCommand}"
+                                        CommandParameter="{Binding}"
+                                        Padding="2,0"
+                                        FontSize="11"
+                                        Background="Transparent"
+                                        VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </TabControl.ItemTemplate>
+                <TabControl.ContentTemplate>
+                    <DataTemplate DataType="vm:TabViewModel">
+                        <views:EditorView DataContext="{Binding}" />
+                    </DataTemplate>
+                </TabControl.ContentTemplate>
+            </TabControl>
+        </DockPanel>
+
+        <!-- Drag Ghost Overlay -->
+        <Canvas x:Name="DragCanvas" IsHitTestVisible="False">
+            <Border x:Name="DragGhost"
+                    IsVisible="False"
+                    Background="{DynamicResource DragGhostBackground}"
+                    BorderBrush="{DynamicResource DragGhostBorder}"
+                    BorderThickness="1"
+                    CornerRadius="3"
+                    Padding="6,4"
+                    Opacity="0.9">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <TextBlock Text="⋮⋮" FontSize="10" Foreground="{DynamicResource DragHandleColor}" VerticalAlignment="Center" Opacity="0.6"/>
+                    <TextBlock x:Name="DragGhostText" Foreground="{DynamicResource DragGhostForeground}" FontSize="11" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </Canvas>
+    </Panel>
+
+    <Window.Styles>
+        <!-- Close button hover style -->
+        <Style Selector="Button.close:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#ff5555"/>
+        </Style>
+        <!-- Window control button hover -->
+        <Style Selector="StackPanel > Button:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource WindowControlHover}"/>
+        </Style>
+    </Window.Styles>
+</Window>

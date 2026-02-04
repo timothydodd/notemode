@@ -1,0 +1,28 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Flit.Views.FileChangedDialog"
+        Title="File Changed"
+        Width="450"
+        Height="180"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        ShowInTaskbar="False">
+
+    <DockPanel Margin="16">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button x:Name="KeepChangesButton" Content="Keep My Changes" Click="KeepChanges_Click" Width="130" IsVisible="False"/>
+            <Button Content="Ignore" Click="Ignore_Click" Width="80"/>
+            <Button Content="Reload" Click="Reload_Click" Width="80" IsDefault="True"/>
+        </StackPanel>
+        <StackPanel VerticalAlignment="Center" Spacing="8">
+            <TextBlock x:Name="MessageText"
+                       Text="The file has been modified outside of Flit."
+                       TextWrapping="Wrap"/>
+            <TextBlock x:Name="ConflictText"
+                       Text="You have unsaved changes."
+                       Foreground="{DynamicResource WarningColor}"
+                       TextWrapping="Wrap"
+                       IsVisible="False"/>
+        </StackPanel>
+    </DockPanel>
+</Window>

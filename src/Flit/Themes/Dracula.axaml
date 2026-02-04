@@ -1,0 +1,186 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ae="using:AvaloniaEdit"
+        xmlns:avaloniaedit="https://github.com/avaloniaui/avaloniaedit">
+
+    <Styles.Resources>
+        <SolidColorBrush x:Key="TitleBarBackground" Color="#21222c"/>
+        <SolidColorBrush x:Key="TitleBarForeground" Color="#f8f8f2"/>
+        <SolidColorBrush x:Key="StatusBarText" Color="#6272a4"/>
+        <SolidColorBrush x:Key="StatusBarSeparator" Color="#44475a"/>
+        <SolidColorBrush x:Key="DragHandleColor" Color="#6272a4"/>
+        <SolidColorBrush x:Key="DragGhostBackground" Color="#282a36"/>
+        <SolidColorBrush x:Key="DragGhostBorder" Color="#bd93f9"/>
+        <SolidColorBrush x:Key="DragGhostForeground" Color="#f8f8f2"/>
+        <SolidColorBrush x:Key="WindowControlHover" Color="#44475a"/>
+        <!-- Dialog resources -->
+        <SolidColorBrush x:Key="AccentColor" Color="#bd93f9"/>
+        <SolidColorBrush x:Key="SecondaryText" Color="#6272a4"/>
+        <SolidColorBrush x:Key="WarningColor" Color="#ffb86c"/>
+    </Styles.Resources>
+
+    <Style Selector="Window">
+        <Setter Property="Background" Value="#282a36"/>
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <Style Selector="TabControl">
+        <Setter Property="Background" Value="#1a1b24"/>
+    </Style>
+
+    <Style Selector="TabItem">
+        <Setter Property="Background" Value="#1a1b24"/>
+        <Setter Property="Foreground" Value="#808080"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="MinHeight" Value="28"/>
+    </Style>
+
+    <Style Selector="TabItem:selected">
+        <Setter Property="Background" Value="#282a36"/>
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
+        <Setter Property="VerticalAlignment" Value="Bottom"/>
+        <Setter Property="Height" Value="2"/>
+        <Setter Property="Margin" Value="0"/>
+    </Style>
+
+    <Style Selector="TabItem:pointerover">
+        <Setter Property="Background" Value="#44475a"/>
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <Style Selector="ae|TextEditor">
+        <Setter Property="Background" Value="#1E1F29"/>
+        <Setter Property="Foreground" Value="#e0e0e0"/>
+        <Setter Property="LineNumbersForeground" Value="#6272a4"/>
+        <Setter Property="FontFamily" Value="Consolas"/>
+        <Setter Property="ShowLineNumbers" Value="True"/>
+        <Setter Property="Padding" Value="8,10,10,10"/>
+        <Setter Property="SearchResultsBrush" Value="#5A4020"/>
+    </Style>
+
+    <Style Selector="Button">
+        <Setter Property="Background" Value="#44475a"/>
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="8,4"/>
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#6272a4"/>
+    </Style>
+
+    <Style Selector="Menu">
+        <Setter Property="Background" Value="#21222c"/>
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <Style Selector="MenuItem">
+        <Setter Property="Background" Value="#21222c"/>
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <Style Selector="MenuItem:selected /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="#44475a"/>
+    </Style>
+
+    <Style Selector="ContextMenu">
+        <Setter Property="Background" Value="#21222c"/>
+        <Setter Property="BorderBrush" Value="#44475a"/>
+    </Style>
+
+    <Style Selector="ScrollBar">
+        <Setter Property="Background" Value="#21222c"/>
+    </Style>
+
+    <Style Selector="ScrollBar /template/ Thumb">
+        <Setter Property="Background" Value="#44475a"/>
+    </Style>
+
+    <!-- TextBox styles -->
+    <Style Selector="TextBox">
+        <Setter Property="Background" Value="#44475a"/>
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+        <Setter Property="BorderBrush" Value="#6272a4"/>
+        <Setter Property="CaretBrush" Value="#f8f8f2"/>
+        <Setter Property="SelectionBrush" Value="#6272a4"/>
+    </Style>
+
+    <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="#bd93f9"/>
+    </Style>
+
+    <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="#bd93f9"/>
+    </Style>
+
+    <!-- CheckBox styles -->
+    <Style Selector="CheckBox">
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <!-- TextBlock styles -->
+    <Style Selector="TextBlock">
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <!-- ListBox styles -->
+    <Style Selector="ListBox">
+        <Setter Property="Background" Value="#282a36"/>
+        <Setter Property="BorderBrush" Value="#44475a"/>
+    </Style>
+
+    <Style Selector="ListBoxItem">
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="#44475a"/>
+    </Style>
+
+    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#383a46"/>
+    </Style>
+
+    <!-- Separator styles -->
+    <Style Selector="Separator">
+        <Setter Property="Background" Value="#44475a"/>
+        <Setter Property="Height" Value="1"/>
+        <Setter Property="Margin" Value="0,4"/>
+    </Style>
+
+    <!-- Menu separator specific -->
+    <Style Selector="MenuItem > Separator">
+        <Setter Property="Background" Value="#44475a"/>
+    </Style>
+
+    <Style Selector="ContextMenu Separator">
+        <Setter Property="Background" Value="#44475a"/>
+    </Style>
+
+    <!-- Label styles -->
+    <Style Selector="Label">
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <!-- ContentPresenter text color -->
+    <Style Selector="ContentPresenter">
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <!-- TabItem text -->
+    <Style Selector="TabItem TextBlock">
+        <Setter Property="Foreground" Value="#808080"/>
+    </Style>
+
+    <Style Selector="TabItem:selected TextBlock">
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <Style Selector="TabItem:pointerover TextBlock">
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+</Styles>
