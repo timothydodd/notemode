@@ -23,17 +23,18 @@ public class SyntaxService
     private static readonly Color DraculaYellow = Color.Parse("#f1fa8c");
     private static readonly Color DraculaLink = Color.Parse("#8be9fd");
 
-    // Light theme colors (VS Code-like)
+    // Light theme colors (VS Code Light+ inspired)
     private static readonly Color LightForeground = Color.Parse("#1e1e1e");
-    private static readonly Color LightComment = Color.Parse("#008000");
-    private static readonly Color LightCyan = Color.Parse("#267f99");
-    private static readonly Color LightGreen = Color.Parse("#795e26");
-    private static readonly Color LightOrange = Color.Parse("#811f3f");
-    private static readonly Color LightPink = Color.Parse("#af00db");
-    private static readonly Color LightPurple = Color.Parse("#0000ff");
-    private static readonly Color LightRed = Color.Parse("#a31515");
-    private static readonly Color LightYellow = Color.Parse("#a31515");
-    private static readonly Color LightLink = Color.Parse("#0066cc");
+    private static readonly Color LightComment = Color.Parse("#008000");      // Green comments
+    private static readonly Color LightCyan = Color.Parse("#267f99");         // Teal for types/classes
+    private static readonly Color LightGreen = Color.Parse("#795e26");        // Brown for functions
+    private static readonly Color LightOrange = Color.Parse("#e65100");       // Orange for parameters/variables
+    private static readonly Color LightPink = Color.Parse("#af00db");         // Purple for keywords
+    private static readonly Color LightPurple = Color.Parse("#0000ff");       // Blue for keywords
+    private static readonly Color LightRed = Color.Parse("#a31515");          // Red for errors
+    private static readonly Color LightYellow = Color.Parse("#a31515");       // Brown/red for strings
+    private static readonly Color LightLink = Color.Parse("#0066cc");         // Blue for links
+    private static readonly Color LightNumber = Color.Parse("#098658");       // Green for numbers
 
     private bool _useLightTheme;
 
@@ -186,6 +187,7 @@ public class SyntaxService
         var red = _useLightTheme ? LightRed : DraculaRed;
         var yellow = _useLightTheme ? LightYellow : DraculaYellow;
         var link = _useLightTheme ? LightLink : DraculaLink;
+        var number = _useLightTheme ? LightNumber : DraculaPurple;
 
         // Map common highlighting names to theme colors
         if (name.Contains("comment"))
@@ -203,7 +205,7 @@ public class SyntaxService
         }
         else if (name.Contains("number") || name.Contains("digit"))
         {
-            color.Foreground = new SimpleHighlightingBrush(purple);
+            color.Foreground = new SimpleHighlightingBrush(number);
         }
         else if (name.Contains("type") || name.Contains("class") || name.Contains("struct") || name.Contains("interface") || name.Contains("enum"))
         {
@@ -226,6 +228,10 @@ public class SyntaxService
             color.Foreground = new SimpleHighlightingBrush(green);
         }
         else if (name.Contains("namespace") || name.Contains("using"))
+        {
+            color.Foreground = new SimpleHighlightingBrush(pink);
+        }
+        else if (name.Contains("visibility") || name.Contains("modifier") || name.Contains("access"))
         {
             color.Foreground = new SimpleHighlightingBrush(pink);
         }
@@ -262,9 +268,9 @@ public class SyntaxService
             color.Foreground = new SimpleHighlightingBrush(link);
             color.Underline = true;
         }
-        else if (color.Foreground == null)
+        else
         {
-            // Default foreground
+            // Default foreground for any unmatched colors
             color.Foreground = new SimpleHighlightingBrush(foreground);
         }
     }

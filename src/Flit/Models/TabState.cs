@@ -19,4 +19,7 @@ public class TabState
 
     [JsonPropertyName("lastModified")]
     public DateTime? LastModified { get; set; }
+
+    [JsonPropertyName("syntaxName")]
+    public string? SyntaxName { get; set; }
 }

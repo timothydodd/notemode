@@ -1,22 +1,28 @@
-# Flit
+<p align="center">
+  <img src="src/Flit/Assets/flit-logo.svg" alt="Flit Logo" width="128" height="128">
+</p>
 
-A lightweight, fast desktop text editor built with C# and Avalonia UI.
+<h1 align="center">Flit</h1>
+
+<p align="center">
+  A lightweight, fast desktop text editor built with C# and Avalonia UI.
+</p>
 
 ## Features
 
-- **Tabbed editing** with smart tab selection when closing
-- **Syntax highlighting** for 30+ programming languages
+- **Tabbed editing** with drag-and-drop reordering and smart tab selection
+- **Syntax highlighting** for 20+ programming languages
 - **Auto-save** with content caching (changes saved every 500ms)
-- **Session persistence** - reopens your tabs and window state
+- **Session persistence** - reopens your tabs, window state, and font preferences
 - **Find & Replace** with regex support
-- **Find in all tabs** search across open files
+- **Find in all tabs** - search across all open files
 - **External file change detection** with reload prompts
-- **Dracula dark theme** with clean, minimal UI
+- **Dual themes** - Dracula dark and VS Code-inspired light theme
 - **Cross-platform** - Windows, macOS, Linux
 
-## Screenshots
+## Screenshot
 
-<!-- Add screenshots here -->
+![Flit Screenshot](docs/screen1.png)
 
 ## Requirements
 
@@ -70,7 +76,7 @@ src/Flit/
 ├── Services/        # Business logic (state, cache, syntax)
 ├── ViewModels/      # Presentation logic with bindings
 ├── Views/           # Avalonia XAML UI definitions
-└── Themes/          # Color schemes (Dracula)
+└── Themes/          # Color schemes (Dracula, Light)
 ```
 
 ## Data Storage
