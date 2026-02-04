@@ -266,7 +266,8 @@ public class TabViewModel : INotifyPropertyChanged
             Title = Title,
             FilePath = FilePath,
             Order = order,
-            LastModified = _lastKnownModified
+            LastModified = _lastKnownModified,
+            SyntaxName = _syntaxName
         };
     }
 
@@ -283,8 +284,16 @@ public class TabViewModel : INotifyPropertyChanged
             _hasCachedChanges = cacheService.HasCache(state.Id)
         };
 
-        // Update syntax highlighting (doesn't need content)
-        vm.UpdateSyntaxHighlighting();
+        // Restore saved syntax name, or auto-detect if not saved
+        if (!string.IsNullOrEmpty(state.SyntaxName))
+        {
+            vm._syntaxName = state.SyntaxName;
+            vm.SyntaxHighlighting = syntaxService.GetHighlightingByName(state.SyntaxName);
+        }
+        else
+        {
+            vm.UpdateSyntaxHighlighting();
+        }
 
         return vm;
     }
