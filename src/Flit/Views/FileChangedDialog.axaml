@@ -10,9 +10,9 @@
 
     <DockPanel Margin="16">
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-            <Button x:Name="KeepChangesButton" Content="Keep My Changes" Click="KeepChanges_Click" Width="130" IsVisible="False"/>
-            <Button Content="Ignore" Click="Ignore_Click" Width="80"/>
-            <Button Content="Reload" Click="Reload_Click" Width="80" IsDefault="True"/>
+            <Button x:Name="KeepChangesButton" Content="Keep My Changes" Click="KeepChanges_Click" IsVisible="False"/>
+            <Button Content="Ignore" Click="Ignore_Click"/>
+            <Button Content="Reload" Click="Reload_Click" Classes="primary" IsDefault="True"/>
         </StackPanel>
         <StackPanel VerticalAlignment="Center" Spacing="8">
             <TextBlock x:Name="MessageText"

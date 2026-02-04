@@ -11,6 +11,7 @@ using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using Flit.Services;
 using Flit.ViewModels;
 
 namespace Flit.Views;
@@ -736,6 +737,22 @@ public partial class MainWindow : Window
     private void Replace_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         ShowFindReplaceDialog();
+    }
+
+    private async void LanguageButton_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (ViewModel?.SelectedTab == null) return;
+
+        var syntaxService = App.Instance?.GetSyntaxService();
+        if (syntaxService == null) return;
+
+        var dialog = new LanguagePickerDialog(syntaxService, ViewModel.SelectedTab.SyntaxName);
+        var result = await dialog.ShowDialog<string?>(this);
+
+        if (!string.IsNullOrEmpty(result))
+        {
+            ViewModel.SelectedTab.SyntaxName = result;
+        }
     }
 
     protected override void OnClosing(WindowClosingEventArgs e)

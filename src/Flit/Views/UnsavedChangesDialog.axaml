@@ -10,9 +10,9 @@
 
     <DockPanel Margin="16">
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-            <Button Content="Don't Save" Click="DontSave_Click" Width="90"/>
-            <Button Content="Cancel" Click="Cancel_Click" Width="80"/>
-            <Button Content="Save" Click="Save_Click" Width="80" IsDefault="True"/>
+            <Button Content="Don't Save" Click="DontSave_Click"/>
+            <Button Content="Cancel" Click="Cancel_Click"/>
+            <Button Content="Save" Click="Save_Click" Classes="primary" IsDefault="True"/>
         </StackPanel>
         <TextBlock x:Name="MessageText"
                    Text="Do you want to save changes?"
