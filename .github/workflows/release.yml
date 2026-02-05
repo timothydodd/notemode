@@ -61,6 +61,7 @@ jobs:
           $msiVersion = ($versionParts[0..2] -join '.')
 
           wix build installer/Flit.wxs `
+            -arch x64 `
             -d ProductVersion=$msiVersion `
             -d "PublishDir=${{ github.workspace }}\publish\win-x64" `
             -o Flit-${{ steps.version.outputs.VERSION }}-win-x64.msi `
