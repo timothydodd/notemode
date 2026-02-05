@@ -5,7 +5,8 @@
   <Package Name="Flit"
            Manufacturer="Tim Dodd"
            Version="$(ProductVersion)"
-           UpgradeCode="388513b1-b436-40dc-bd15-6b52a352e7fa">
+           UpgradeCode="388513b1-b436-40dc-bd15-6b52a352e7fa"
+           Platform="x64">
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of Flit is already installed." />
     <MediaTemplate EmbedCab="yes" />
@@ -47,6 +48,7 @@
                     Advertise="yes" />
         </File>
       </Component>
+      <Files Include="$(PublishDir)\*.dll" />
     </ComponentGroup>
   </Fragment>
 
