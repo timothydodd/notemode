@@ -18,6 +18,15 @@ public class AppState
     [JsonPropertyName("windowHeight")]
     public double WindowHeight { get; set; } = 800;
 
+    [JsonPropertyName("windowX")]
+    public double? WindowX { get; set; }
+
+    [JsonPropertyName("windowY")]
+    public double? WindowY { get; set; }
+
+    [JsonPropertyName("isMaximized")]
+    public bool IsMaximized { get; set; }
+
     [JsonPropertyName("fontSize")]
     public double FontSize { get; set; } = 10;
 

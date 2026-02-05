@@ -96,6 +96,72 @@ public partial class MainWindow : Window
         if (ViewModel != null)
         {
             ViewModel.ExternalChangeDetected += OnExternalChangeDetected;
+            RestoreWindowPosition();
+        }
+    }
+
+    private void RestoreWindowPosition()
+    {
+        if (ViewModel == null) return;
+
+        Width = ViewModel.WindowWidth;
+        Height = ViewModel.WindowHeight;
+
+        if (ViewModel.WindowX.HasValue && ViewModel.WindowY.HasValue)
+        {
+            var x = (int)ViewModel.WindowX.Value;
+            var y = (int)ViewModel.WindowY.Value;
+
+            // Validate position is within visible screen area
+            if (Screens != null && IsPositionVisible(x, y))
+            {
+                Position = new PixelPoint(x, y);
+            }
+            else
+            {
+                WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            }
+        }
+
+        if (ViewModel.IsMaximized)
+        {
+            WindowState = WindowState.Maximized;
+        }
+    }
+
+    private bool IsPositionVisible(int x, int y)
+    {
+        if (Screens?.All == null) return false;
+
+        // Check if any part of the window title bar is visible on any screen
+        foreach (var screen in Screens.All)
+        {
+            var bounds = screen.WorkingArea;
+            // Consider the window visible if its top-left area overlaps with a screen
+            // Allow some tolerance: at least 100px of the window should be on screen
+            if (x + 100 > bounds.X && x < bounds.X + bounds.Width &&
+                y >= bounds.Y && y < bounds.Y + bounds.Height)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void UpdateWindowBoundsOnViewModel()
+    {
+        if (ViewModel == null) return;
+
+        ViewModel.IsMaximized = WindowState == WindowState.Maximized;
+
+        // Save the normal (non-maximized) bounds so we restore to the right position
+        if (WindowState == WindowState.Normal)
+        {
+            ViewModel.WindowWidth = Width;
+            ViewModel.WindowHeight = Height;
+            ViewModel.WindowX = Position.X;
+            ViewModel.WindowY = Position.Y;
         }
     }
 
@@ -488,7 +554,6 @@ public partial class MainWindow : Window
 
     private void Exit_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        ViewModel?.SaveState();
         Close();
     }
 
@@ -535,7 +600,6 @@ public partial class MainWindow : Window
 
     private void Close_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        ViewModel?.SaveState();
         Close();
     }
 
@@ -743,6 +807,7 @@ public partial class MainWindow : Window
 
     protected override void OnClosing(WindowClosingEventArgs e)
     {
+        UpdateWindowBoundsOnViewModel();
         ViewModel?.SaveState();
         base.OnClosing(e);
     }

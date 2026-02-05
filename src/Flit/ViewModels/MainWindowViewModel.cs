@@ -23,6 +23,13 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private bool _useLightTheme = false;
     private StatusBarViewModel _statusBar = new();
 
+    // Window position/size state
+    public double WindowWidth { get; set; } = 1200;
+    public double WindowHeight { get; set; } = 800;
+    public double? WindowX { get; set; }
+    public double? WindowY { get; set; }
+    public bool IsMaximized { get; set; }
+
     public event PropertyChangedEventHandler? PropertyChanged;
     public event EventHandler<TabViewModel>? ExternalChangeDetected;
     public event EventHandler<bool>? ThemeChanged;
@@ -431,7 +438,12 @@ public class MainWindowViewModel : INotifyPropertyChanged
             FontSize = _fontSize,
             ShowWhitespace = _showWhitespace,
             ShowLineNumbers = _showLineNumbers,
-            UseLightTheme = _useLightTheme
+            UseLightTheme = _useLightTheme,
+            WindowWidth = WindowWidth,
+            WindowHeight = WindowHeight,
+            WindowX = WindowX,
+            WindowY = WindowY,
+            IsMaximized = IsMaximized
         };
 
         _stateService.SaveState(state);
@@ -445,6 +457,11 @@ public class MainWindowViewModel : INotifyPropertyChanged
         _showWhitespace = state.ShowWhitespace;
         _showLineNumbers = state.ShowLineNumbers;
         _useLightTheme = state.UseLightTheme;
+        WindowWidth = state.WindowWidth > 0 ? state.WindowWidth : 1200;
+        WindowHeight = state.WindowHeight > 0 ? state.WindowHeight : 800;
+        WindowX = state.WindowX;
+        WindowY = state.WindowY;
+        IsMaximized = state.IsMaximized;
 
         foreach (var tabState in state.Tabs.OrderBy(t => t.Order))
         {
