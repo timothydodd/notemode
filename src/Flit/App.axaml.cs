@@ -5,6 +5,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
 using Flit.Services;
+using Flit.Themes;
 using Flit.ViewModels;
 using Flit.Views;
 
@@ -27,8 +28,8 @@ public partial class App : Application
         AvaloniaXamlLoader.Load(this);
 
         // Load both themes
-        _draculaTheme = (Styles)AvaloniaXamlLoader.Load(new Uri("avares://Flit/Themes/Dracula.axaml"));
-        _lightTheme = (Styles)AvaloniaXamlLoader.Load(new Uri("avares://Flit/Themes/Light.axaml"));
+        _draculaTheme = new DraculaTheme();
+        _lightTheme = new LightTheme();
     }
 
     public override void OnFrameworkInitializationCompleted()

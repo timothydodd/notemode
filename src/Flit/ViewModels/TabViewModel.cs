@@ -58,18 +58,11 @@ public class TabViewModel : INotifyPropertyChanged
         }
     }
 
-    public string DisplayTitle
-    {
-        get
-        {
-            var title = Title;
-            if (HasExternalChanges)
-                title = "⚠ " + title;
-            if (IsDirty || HasCachedChanges)
-                title = "● " + title;
-            return title;
-        }
-    }
+    public string DisplayTitle => Title;
+
+    public bool ShowDirtyIndicator => IsDirty || HasCachedChanges;
+
+    public bool ShowExternalWarning => HasExternalChanges;
 
     public string? FilePath
     {
@@ -119,6 +112,7 @@ public class TabViewModel : INotifyPropertyChanged
                 _hasCachedChanges = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(DisplayTitle));
+                OnPropertyChanged(nameof(ShowDirtyIndicator));
             }
         }
     }
@@ -133,6 +127,7 @@ public class TabViewModel : INotifyPropertyChanged
                 _isDirty = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(DisplayTitle));
+                OnPropertyChanged(nameof(ShowDirtyIndicator));
             }
         }
     }
@@ -190,6 +185,7 @@ public class TabViewModel : INotifyPropertyChanged
                 _hasExternalChanges = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(DisplayTitle));
+                OnPropertyChanged(nameof(ShowExternalWarning));
             }
         }
     }
