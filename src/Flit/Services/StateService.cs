@@ -8,7 +8,6 @@ namespace Flit.Services;
 public class StateService
 {
     private readonly string _stateFilePath;
-    private readonly JsonSerializerOptions _jsonOptions;
 
     public StateService()
     {
@@ -18,11 +17,6 @@ public class StateService
         );
         Directory.CreateDirectory(flitDir);
         _stateFilePath = Path.Combine(flitDir, "state.json");
-
-        _jsonOptions = new JsonSerializerOptions
-        {
-            WriteIndented = true
-        };
     }
 
     public AppState LoadState()
@@ -32,7 +26,7 @@ public class StateService
             if (File.Exists(_stateFilePath))
             {
                 var json = File.ReadAllText(_stateFilePath);
-                return JsonSerializer.Deserialize<AppState>(json, _jsonOptions) ?? new AppState();
+                return JsonSerializer.Deserialize(json, AppJsonContext.Default.AppState) ?? new AppState();
             }
         }
         catch (Exception)
@@ -47,7 +41,7 @@ public class StateService
     {
         try
         {
-            var json = JsonSerializer.Serialize(state, _jsonOptions);
+            var json = JsonSerializer.Serialize(state, AppJsonContext.Default.AppState);
             File.WriteAllText(_stateFilePath, json);
         }
         catch (Exception)

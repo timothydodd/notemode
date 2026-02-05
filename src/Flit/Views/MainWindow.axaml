@@ -255,11 +255,25 @@
                                                        Foreground="{DynamicResource DragHandleColor}"
                                                        VerticalAlignment="Center"
                                                        Cursor="SizeAll"
-                                                       Margin="0,0,4,0"
+                                                       Margin="0,0,8,0"
                                                        Opacity="0.6"/>
+                                            <!-- External changes warning -->
+                                            <TextBlock Text="⚠"
+                                                       FontSize="9"
+                                                       Foreground="{DynamicResource WarningColor}"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,4,0"
+                                                       IsVisible="{Binding ShowExternalWarning}"/>
                                             <TextBlock Text="{Binding DisplayTitle}"
                                                        VerticalAlignment="Center"
                                                        FontSize="11"/>
+                                            <!-- Dirty indicator -->
+                                            <TextBlock Text="●"
+                                                       FontSize="7"
+                                                       Foreground="{DynamicResource AccentColor}"
+                                                       VerticalAlignment="Center"
+                                                       Margin="5,0,0,0"
+                                                       IsVisible="{Binding ShowDirtyIndicator}"/>
                                             <Button Content="x"
                                                     Command="{Binding #MainWin.CloseTabWithPromptCommand}"
                                                     CommandParameter="{Binding}"
