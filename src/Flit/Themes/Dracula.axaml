@@ -29,6 +29,14 @@
         <SolidColorBrush x:Key="TabItemText" Color="#808080"/>
         <SolidColorBrush x:Key="NewTabButtonBackground" Color="#2a2c38"/>
         <SolidColorBrush x:Key="NewTabButtonHover" Color="#44475a"/>
+        <!-- Search panel resources -->
+        <SolidColorBrush x:Key="SearchPanelBackground" Color="#21222c"/>
+        <SolidColorBrush x:Key="SearchPanelBorder" Color="#44475a"/>
+        <SolidColorBrush x:Key="SearchPanelHeaderBackground" Color="#282a36"/>
+        <SolidColorBrush x:Key="SearchPanelHeaderText" Color="#f8f8f2"/>
+        <SolidColorBrush x:Key="SearchMatchHighlight" Color="#f1fa8c"/>
+        <SolidColorBrush x:Key="SearchModeButtonActive" Color="#44475a"/>
+        <SolidColorBrush x:Key="SearchModeButtonInactive" Color="#282a36"/>
     </Styles.Resources>
 
     <Style Selector="Window">

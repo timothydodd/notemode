@@ -21,6 +21,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private bool _showWhitespace = false;
     private bool _showLineNumbers = true;
     private bool _useLightTheme = false;
+    private bool _isSearchPanelOpen;
+    private double _searchPanelWidth = 350;
     private StatusBarViewModel _statusBar = new();
 
     // Window position/size state
@@ -54,6 +56,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         ToggleWhitespaceCommand = new RelayCommand(_ => ShowWhitespace = !ShowWhitespace);
         ToggleLineNumbersCommand = new RelayCommand(_ => ShowLineNumbers = !ShowLineNumbers);
         ToggleLightThemeCommand = new RelayCommand(_ => UseLightTheme = !UseLightTheme);
+        ToggleSearchPanelCommand = new RelayCommand(_ => IsSearchPanelOpen = !IsSearchPanelOpen);
 
         LoadState();
 
@@ -158,6 +161,33 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
+    public bool IsSearchPanelOpen
+    {
+        get => _isSearchPanelOpen;
+        set
+        {
+            if (_isSearchPanelOpen != value)
+            {
+                _isSearchPanelOpen = value;
+                OnPropertyChanged();
+                SaveState();
+            }
+        }
+    }
+
+    public double SearchPanelWidth
+    {
+        get => _searchPanelWidth;
+        set
+        {
+            if (Math.Abs(_searchPanelWidth - value) > 0.5)
+            {
+                _searchPanelWidth = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     public ICommand NewTabCommand { get; }
     public ICommand CloseTabCommand { get; }
     public ICommand CloseOthersCommand { get; }
@@ -169,6 +199,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public ICommand ToggleWhitespaceCommand { get; }
     public ICommand ToggleLineNumbersCommand { get; }
     public ICommand ToggleLightThemeCommand { get; }
+    public ICommand ToggleSearchPanelCommand { get; }
 
     public StatusBarViewModel StatusBar => _statusBar;
 
@@ -443,7 +474,9 @@ public class MainWindowViewModel : INotifyPropertyChanged
             WindowHeight = WindowHeight,
             WindowX = WindowX,
             WindowY = WindowY,
-            IsMaximized = IsMaximized
+            IsMaximized = IsMaximized,
+            SearchPanelOpen = _isSearchPanelOpen,
+            SearchPanelWidth = _searchPanelWidth
         };
 
         _stateService.SaveState(state);
@@ -462,6 +495,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
         WindowX = state.WindowX;
         WindowY = state.WindowY;
         IsMaximized = state.IsMaximized;
+        _isSearchPanelOpen = state.SearchPanelOpen;
+        _searchPanelWidth = state.SearchPanelWidth > 0 ? state.SearchPanelWidth : 350;
 
         foreach (var tabState in state.Tabs.OrderBy(t => t.Order))
         {

@@ -38,4 +38,10 @@ public class AppState
 
     [JsonPropertyName("useLightTheme")]
     public bool UseLightTheme { get; set; }
+
+    [JsonPropertyName("searchPanelOpen")]
+    public bool SearchPanelOpen { get; set; }
+
+    [JsonPropertyName("searchPanelWidth")]
+    public double SearchPanelWidth { get; set; } = 350;
 }

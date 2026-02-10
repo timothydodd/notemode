@@ -28,6 +28,11 @@ public partial class MainWindow : Window
     private TextBlock? _dragGhostText;
     private Canvas? _dragCanvas;
     private ListBox? _tabStrip;
+    private SearchPanel? _searchPanel;
+    private SearchPanelViewModel? _searchPanelViewModel;
+    private ColumnDefinition? _searchPanelColumn;
+    private ColumnDefinition? _searchSplitterColumn;
+    private GridSplitter? _searchSplitter;
 
     public MainWindow()
     {
@@ -47,6 +52,7 @@ public partial class MainWindow : Window
         CloseAllWithPromptCommand = new RelayCommand(_ => RunAsync(TryCloseAllAsync));
         FindCommand = new RelayCommand(_ => ShowFindReplaceDialog());
         FindInTabsCommand = new RelayCommand(_ => ShowFindInTabsDialog());
+        ToggleSearchPanelCommand = new RelayCommand(_ => ToggleSearchPanel());
         ReplaceCommand = new RelayCommand(_ => ShowFindReplaceDialog());
 
         AddHandler(PointerMovedEvent, Window_PointerMoved, handledEventsToo: true);
@@ -68,8 +74,17 @@ public partial class MainWindow : Window
         }
         else if (e.Key == Key.F && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift))
         {
-            ShowFindInTabsDialog();
+            ToggleSearchPanel();
             e.Handled = true;
+        }
+        else if (e.Key == Key.Escape && ViewModel?.IsSearchPanelOpen == true && _searchPanel != null)
+        {
+            // Close search panel if it (or its children) has focus
+            if (_searchPanel.IsKeyboardFocusWithin)
+            {
+                ViewModel.IsSearchPanelOpen = false;
+                e.Handled = true;
+            }
         }
     }
 
@@ -97,6 +112,7 @@ public partial class MainWindow : Window
         {
             ViewModel.ExternalChangeDetected += OnExternalChangeDetected;
             RestoreWindowPosition();
+            InitializeSearchPanel();
         }
     }
 
@@ -213,6 +229,7 @@ public partial class MainWindow : Window
     public ICommand CloseAllWithPromptCommand { get; }
     public ICommand FindCommand { get; }
     public ICommand FindInTabsCommand { get; }
+    public ICommand ToggleSearchPanelCommand { get; }
     public ICommand ReplaceCommand { get; }
 
     private MainWindowViewModel? ViewModel => DataContext as MainWindowViewModel;
@@ -552,6 +569,59 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void CloseTab_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is MenuItem menuItem && menuItem.Tag is TabViewModel tab)
+        {
+            await TryCloseTabAsync(tab);
+        }
+    }
+
+    private async void CloseOthers_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is MenuItem menuItem && menuItem.Tag is TabViewModel tab)
+        {
+            await TryCloseOthersAsync(tab);
+        }
+    }
+
+    private async void CloseToRight_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is MenuItem menuItem && menuItem.Tag is TabViewModel tab)
+        {
+            await TryCloseToRightAsync(tab);
+        }
+    }
+
+    private async void CloseToLeft_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is MenuItem menuItem && menuItem.Tag is TabViewModel tab)
+        {
+            await TryCloseToLeftAsync(tab);
+        }
+    }
+
+    private void CloseUnchanged_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        ViewModel?.CloseUnchanged();
+    }
+
+    private async void CloseAll_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        await TryCloseAllAsync();
+    }
+
+    private async void CloseTab_MenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (ViewModel?.SelectedTab != null)
+            await TryCloseTabAsync(ViewModel.SelectedTab);
+    }
+
+    private async void CloseAll_MenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        await TryCloseAllAsync();
+    }
+
     private void Exit_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         Close();
@@ -779,9 +849,142 @@ public partial class MainWindow : Window
         ShowFindReplaceDialog();
     }
 
-    private void FindInTabs_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void ToggleSearchPanel_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        ShowFindInTabsDialog();
+        ToggleSearchPanel();
+    }
+
+    private void ToggleSearchPanel()
+    {
+        if (ViewModel == null) return;
+
+        ViewModel.IsSearchPanelOpen = !ViewModel.IsSearchPanelOpen;
+
+        if (ViewModel.IsSearchPanelOpen)
+        {
+            // Focus the search box after opening
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                _searchPanel?.FocusSearchBox();
+            }, Avalonia.Threading.DispatcherPriority.Loaded);
+        }
+    }
+
+    private void InitializeSearchPanel()
+    {
+        if (ViewModel == null) return;
+
+        _searchPanel = this.FindControl<SearchPanel>("SearchPanelControl");
+        _searchSplitter = this.FindControl<GridSplitter>("SearchSplitter");
+        // ColumnDefinitions aren't Controls, so find them via the parent Grid
+        var contentGrid = _searchPanel?.Parent as Grid;
+        if (contentGrid?.ColumnDefinitions.Count >= 2)
+        {
+            _searchPanelColumn = contentGrid.ColumnDefinitions[0];
+            _searchSplitterColumn = contentGrid.ColumnDefinitions[1];
+        }
+        if (_searchPanel == null) return;
+
+        _searchPanelViewModel = new SearchPanelViewModel(ViewModel);
+        _searchPanel.DataContext = _searchPanelViewModel;
+
+        // Set initial state
+        if (ViewModel.IsSearchPanelOpen)
+        {
+            ShowSearchPanel();
+        }
+
+        // React to ViewModel changes
+        ViewModel.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(MainWindowViewModel.IsSearchPanelOpen))
+            {
+                if (ViewModel.IsSearchPanelOpen)
+                    ShowSearchPanel();
+                else
+                    HideSearchPanel();
+            }
+        };
+
+        _searchPanel.CloseRequested += (s, e) =>
+        {
+            if (ViewModel != null)
+                ViewModel.IsSearchPanelOpen = false;
+        };
+
+        _searchPanel.BrowseFolderRequested += async (s, e) =>
+        {
+            await BrowseSearchFolderAsync();
+        };
+
+        _searchPanel.ResultSelected += (s, item) =>
+        {
+            if (item == null) return;
+            NavigateToSearchResult(item);
+        };
+    }
+
+    private void ShowSearchPanel()
+    {
+        if (_searchPanelColumn == null) return;
+        var width = ViewModel?.SearchPanelWidth ?? 350;
+        _searchPanelColumn.Width = new GridLength(width);
+        _searchPanelColumn.MinWidth = 250;
+        _searchPanelColumn.MaxWidth = 600;
+        if (_searchSplitterColumn != null)
+            _searchSplitterColumn.Width = GridLength.Auto;
+        if (_searchSplitter != null)
+            _searchSplitter.IsVisible = true;
+    }
+
+    private void HideSearchPanel()
+    {
+        if (_searchPanelColumn == null) return;
+        // Save current width before hiding
+        if (ViewModel != null)
+            ViewModel.SearchPanelWidth = _searchPanelColumn.Width.Value;
+        _searchPanelColumn.Width = new GridLength(0);
+        _searchPanelColumn.MinWidth = 0;
+        _searchPanelColumn.MaxWidth = 0;
+        if (_searchSplitterColumn != null)
+            _searchSplitterColumn.Width = new GridLength(0);
+        if (_searchSplitter != null)
+            _searchSplitter.IsVisible = false;
+    }
+
+    private async System.Threading.Tasks.Task BrowseSearchFolderAsync()
+    {
+        var folders = await StorageProvider.OpenFolderPickerAsync(new Avalonia.Platform.Storage.FolderPickerOpenOptions
+        {
+            Title = "Select Folder to Search",
+            AllowMultiple = false
+        });
+
+        if (folders.Count > 0)
+        {
+            var path = folders[0].TryGetLocalPath();
+            if (!string.IsNullOrEmpty(path) && _searchPanelViewModel != null)
+            {
+                _searchPanelViewModel.FolderPath = path;
+            }
+        }
+    }
+
+    private void NavigateToSearchResult(SearchResultItem item)
+    {
+        if (ViewModel == null) return;
+
+        if (item.Tab != null)
+        {
+            // Tab mode: switch to the tab and navigate
+            GoToSearchResult(item.Tab, item.StartOffset, item.Length, item.LineNumber);
+        }
+        else if (!string.IsNullOrEmpty(item.FilePath))
+        {
+            // File mode: open file (or switch to existing tab) and navigate
+            var tab = ViewModel.OpenFile(item.FilePath);
+            GoToSearchResult(tab, item.StartOffset, item.Length, item.LineNumber);
+        }
     }
 
     private void Replace_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -808,6 +1011,13 @@ public partial class MainWindow : Window
     protected override void OnClosing(WindowClosingEventArgs e)
     {
         UpdateWindowBoundsOnViewModel();
+
+        // Save search panel width before closing
+        if (ViewModel != null && ViewModel.IsSearchPanelOpen && _searchPanelColumn != null)
+        {
+            ViewModel.SearchPanelWidth = _searchPanelColumn.Width.Value;
+        }
+
         ViewModel?.SaveState();
         base.OnClosing(e);
     }

@@ -1,0 +1,179 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Flit.ViewModels"
+             x:Class="Flit.Views.SearchPanel"
+             x:DataType="vm:SearchPanelViewModel">
+
+    <Border Background="{DynamicResource SearchPanelBackground}"
+            BorderBrush="{DynamicResource SearchPanelBorder}"
+            BorderThickness="0,0,1,0">
+        <DockPanel>
+            <!-- Header bar -->
+            <Border DockPanel.Dock="Top"
+                    Background="{DynamicResource SearchPanelHeaderBackground}"
+                    Padding="10,6">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="SEARCH"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource SearchPanelHeaderText}"
+                               VerticalAlignment="Center"
+                               Opacity="0.7"/>
+                    <Button Grid.Column="1"
+                            Content="&#xD7;"
+                            Click="CloseButton_Click"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Padding="4,0"
+                            FontSize="16"
+                            VerticalContentAlignment="Center"
+                            Foreground="{DynamicResource SearchPanelHeaderText}"/>
+                </Grid>
+            </Border>
+
+            <!-- Search input area -->
+            <StackPanel DockPanel.Dock="Top" Margin="10,8,10,0" Spacing="6">
+                <TextBox x:Name="SearchTextBox"
+                         Text="{Binding SearchText}"
+                         Watermark="Search"
+                         FontSize="12"/>
+
+                <!-- Options row -->
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <ToggleButton Content="Aa"
+                                  IsChecked="{Binding IsCaseSensitive}"
+                                  ToolTip.Tip="Match Case"
+                                  FontSize="11"
+                                  Padding="6,2"
+                                  MinWidth="30"
+                                  MinHeight="22"/>
+                    <ToggleButton Content="W"
+                                  IsChecked="{Binding IsWholeWord}"
+                                  ToolTip.Tip="Whole Word"
+                                  FontSize="11"
+                                  FontWeight="Bold"
+                                  Padding="6,2"
+                                  MinWidth="30"
+                                  MinHeight="22"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Mode selector -->
+            <StackPanel DockPanel.Dock="Top" Margin="10,8,10,0" Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="2">
+                    <ToggleButton Content="Tabs"
+                                  IsChecked="{Binding IsTabsMode}"
+                                  FontSize="11"
+                                  Padding="10,3"
+                                  MinHeight="24"/>
+                    <ToggleButton Content="Files"
+                                  IsChecked="{Binding IsFilesMode}"
+                                  FontSize="11"
+                                  Padding="10,3"
+                                  MinHeight="24"/>
+                </StackPanel>
+
+                <!-- Folder path + browse (visible in Files mode) -->
+                <Grid ColumnDefinitions="*,Auto"
+                      IsVisible="{Binding IsFilesMode}">
+                    <TextBlock Text="{Binding FolderDisplayName, FallbackValue='No folder selected'}"
+                               FontSize="11"
+                               Foreground="{DynamicResource SecondaryText}"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"/>
+                    <Button Grid.Column="1"
+                            Content="Browse..."
+                            Click="BrowseFolder_Click"
+                            FontSize="11"
+                            Padding="8,2"
+                            Margin="4,0,0,0"/>
+                </Grid>
+            </StackPanel>
+
+            <!-- Status bar -->
+            <TextBlock DockPanel.Dock="Top"
+                       Text="{Binding StatusText}"
+                       FontSize="11"
+                       Foreground="{DynamicResource SecondaryText}"
+                       Margin="10,6,10,4"/>
+
+            <!-- Searching indicator -->
+            <TextBlock DockPanel.Dock="Top"
+                       Text="Searching..."
+                       FontSize="11"
+                       FontStyle="Italic"
+                       Foreground="{DynamicResource SecondaryText}"
+                       Margin="10,0,10,4"
+                       IsVisible="{Binding IsSearching}"/>
+
+            <!-- Results TreeView -->
+            <TreeView ItemsSource="{Binding Results}"
+                      Margin="0,4,0,0"
+                      Background="Transparent"
+                      BorderThickness="0">
+                <TreeView.ItemTemplate>
+                    <TreeDataTemplate DataType="vm:SearchResultGroup"
+                                      ItemsSource="{Binding Items}">
+                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
+                            <TextBlock Text="{Binding Name}"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"/>
+                            <Border Background="{DynamicResource SearchModeButtonActive}"
+                                    CornerRadius="8"
+                                    Padding="6,1">
+                                <TextBlock Text="{Binding MatchCount}"
+                                           FontSize="10"/>
+                            </Border>
+                        </StackPanel>
+                    </TreeDataTemplate>
+                </TreeView.ItemTemplate>
+
+                <TreeView.Styles>
+                    <!-- Style for result items (children) -->
+                    <Style Selector="TreeViewItem">
+                        <Setter Property="IsExpanded" Value="True"/>
+                        <Setter Property="Padding" Value="0"/>
+                    </Style>
+                </TreeView.Styles>
+
+                <TreeView.DataTemplates>
+                    <DataTemplate DataType="vm:SearchResultItem">
+                        <Border Padding="4,2"
+                                Margin="0,0,0,0"
+                                Cursor="Hand"
+                                PointerPressed="ResultItem_PointerPressed"
+                                Background="Transparent"
+                                Tag="{Binding}">
+                            <StackPanel Orientation="Horizontal" Spacing="0">
+                                <TextBlock Text="{Binding LineNumber}"
+                                           FontSize="11"
+                                           Foreground="{DynamicResource SecondaryText}"
+                                           Width="36"
+                                           TextAlignment="Right"
+                                           Margin="0,0,8,0"
+                                           FontFamily="Consolas"/>
+                                <TextBlock Text="{Binding PreviewBefore}"
+                                           FontSize="11"
+                                           FontFamily="Consolas"
+                                           TextTrimming="CharacterEllipsis"/>
+                                <Border Background="{DynamicResource SearchMatchHighlight}"
+                                        CornerRadius="2"
+                                        Padding="0">
+                                    <TextBlock Text="{Binding MatchText}"
+                                               FontSize="11"
+                                               FontFamily="Consolas"
+                                               Foreground="#282a36"/>
+                                </Border>
+                                <TextBlock Text="{Binding PreviewAfter}"
+                                           FontSize="11"
+                                           FontFamily="Consolas"
+                                           TextTrimming="CharacterEllipsis"
+                                           MaxWidth="300"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </TreeView.DataTemplates>
+            </TreeView>
+        </DockPanel>
+    </Border>
+</UserControl>

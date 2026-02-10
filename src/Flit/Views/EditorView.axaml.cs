@@ -18,6 +18,7 @@ public partial class EditorView : UserControl
     private MainWindowViewModel? _mainViewModel;
     private bool _isUpdatingFromViewModel;
     private bool _settingsApplied;
+    private MarkdownTransformer? _markdownTransformer;
 
     private const double MinFontSize = 6;
     private const double MaxFontSize = 72;
@@ -88,6 +89,12 @@ public partial class EditorView : UserControl
             var isLight = App.Instance?.IsLightTheme ?? false;
             _editor.TextArea.SelectionBrush = isLight ? LightSelectionBrush : DarkSelectionBrush;
             _editor.TextArea.TextView.LinkTextForegroundBrush = isLight ? LightLinkBrush : DarkLinkBrush;
+
+            if (_markdownTransformer != null)
+            {
+                _markdownTransformer.SetLightTheme(isLight);
+                _editor.TextArea.TextView.Redraw();
+            }
         }
     }
 
@@ -121,6 +128,11 @@ public partial class EditorView : UserControl
         if (App.Instance != null)
         {
             App.Instance.ThemeChanged -= OnAppThemeChanged;
+        }
+        if (_markdownTransformer != null && _editor != null)
+        {
+            _editor.TextArea.TextView.LineTransformers.Remove(_markdownTransformer);
+            _markdownTransformer = null;
         }
         _settingsApplied = false;
     }
@@ -156,6 +168,11 @@ public partial class EditorView : UserControl
         if (_editor != null && _mainViewModel != null && _mainViewModel.FontSize > 0)
         {
             _editor.FontSize = _mainViewModel.FontSize;
+            if (_markdownTransformer != null)
+            {
+                _markdownTransformer.SetBaseFontSize(_mainViewModel.FontSize);
+                _editor.TextArea.TextView.Redraw();
+            }
         }
     }
 
@@ -173,6 +190,33 @@ public partial class EditorView : UserControl
         if (_editor != null && _mainViewModel != null)
         {
             _editor.ShowLineNumbers = _mainViewModel.ShowLineNumbers;
+        }
+    }
+
+    private void UpdateMarkdownTransformer()
+    {
+        if (_editor == null)
+            return;
+
+        var isMarkdown = _viewModel?.SyntaxName == "MarkDown";
+
+        if (isMarkdown)
+        {
+            if (_markdownTransformer == null)
+            {
+                _markdownTransformer = new MarkdownTransformer();
+                _markdownTransformer.SetLightTheme(App.Instance?.IsLightTheme ?? false);
+                _markdownTransformer.SetBaseFontSize(_editor.FontSize);
+                _editor.TextArea.TextView.LineTransformers.Add(_markdownTransformer);
+            }
+        }
+        else
+        {
+            if (_markdownTransformer != null)
+            {
+                _editor.TextArea.TextView.LineTransformers.Remove(_markdownTransformer);
+                _markdownTransformer = null;
+            }
         }
     }
 
@@ -241,6 +285,12 @@ public partial class EditorView : UserControl
                 _mainViewModel.FontSize = newSize;
             }
 
+            if (_markdownTransformer != null)
+            {
+                _markdownTransformer.SetBaseFontSize(newSize);
+                _editor.TextArea.TextView.Redraw();
+            }
+
             e.Handled = true;
         }
     }
@@ -258,6 +308,7 @@ public partial class EditorView : UserControl
         {
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
             UpdateEditorContent();
+            UpdateMarkdownTransformer();
         }
     }
 
@@ -266,6 +317,10 @@ public partial class EditorView : UserControl
         if (e.PropertyName == nameof(TabViewModel.Content) && !_isUpdatingFromViewModel)
         {
             UpdateEditorContent();
+        }
+        else if (e.PropertyName == nameof(TabViewModel.SyntaxName))
+        {
+            UpdateMarkdownTransformer();
         }
     }
 

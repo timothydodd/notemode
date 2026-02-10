@@ -151,12 +151,15 @@ public class SyntaxService
         // Apply to main rule set and all nested rule sets
         if (definition.MainRuleSet != null)
         {
-            ApplyThemeColorsToRuleSet(definition.MainRuleSet);
+            var visited = new HashSet<HighlightingRuleSet>();
+            ApplyThemeColorsToRuleSet(definition.MainRuleSet, visited);
         }
     }
 
-    private void ApplyThemeColorsToRuleSet(HighlightingRuleSet ruleSet)
+    private void ApplyThemeColorsToRuleSet(HighlightingRuleSet ruleSet, HashSet<HighlightingRuleSet> visited)
     {
+        if (!visited.Add(ruleSet))
+            return;
         foreach (var rule in ruleSet.Rules)
         {
             if (rule.Color != null)
@@ -183,7 +186,7 @@ public class SyntaxService
             // Recursively process nested rule sets within spans
             if (span.RuleSet != null)
             {
-                ApplyThemeColorsToRuleSet(span.RuleSet);
+                ApplyThemeColorsToRuleSet(span.RuleSet, visited);
             }
         }
     }
