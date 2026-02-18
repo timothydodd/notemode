@@ -1,0 +1,143 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Flit.ViewModels"
+             x:Class="Flit.Views.NotesPanel"
+             x:DataType="vm:NotesPanelViewModel">
+
+    <Panel>
+    <Border Background="{DynamicResource NotesPanelBackground}"
+            BorderBrush="{DynamicResource NotesPanelBorder}"
+            BorderThickness="1,0,0,0">
+        <DockPanel>
+            <!-- Header bar -->
+            <Border DockPanel.Dock="Top"
+                    Background="{DynamicResource NotesPanelHeaderBackground}"
+                    Padding="10,6">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="NOTES"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource NotesPanelHeaderText}"
+                               VerticalAlignment="Center"
+                               Opacity="0.7"/>
+                    <Button Grid.Column="1"
+                            Content="&#xD7;"
+                            Click="CloseButton_Click"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Padding="4,0"
+                            FontSize="16"
+                            VerticalContentAlignment="Center"
+                            Foreground="{DynamicResource NotesPanelHeaderText}"/>
+                </Grid>
+            </Border>
+
+            <!-- Toolbar -->
+            <Border DockPanel.Dock="Top" Padding="10,4">
+                <Button Content="+ Folder"
+                        Click="NewFolder_Click"
+                        FontSize="11"
+                        Padding="8,2"/>
+            </Border>
+
+            <!-- Tree View -->
+            <TreeView x:Name="NotesTree"
+                      ItemsSource="{Binding RootItems}"
+                      Margin="0,4,0,0"
+                      Background="Transparent"
+                      BorderThickness="0">
+                <TreeView.ItemTemplate>
+                    <TreeDataTemplate DataType="vm:NoteTreeItemViewModel"
+                                      ItemsSource="{Binding Children}">
+                        <Border Padding="2,2"
+                                Background="Transparent"
+                                Tag="{Binding}"
+                                CornerRadius="3"
+                                DoubleTapped="TreeItem_DoubleTapped"
+                                PointerPressed="TreeItem_PointerPressed"
+                                PointerReleased="TreeItem_PointerReleased"
+                                Classes.dropTarget="{Binding IsDropTarget}">
+                            <Border.ContextMenu>
+                                <ContextMenu Tag="{Binding}">
+                                    <MenuItem Header="Open"
+                                              Tag="{Binding}"
+                                              Click="OpenNote_Click"
+                                              IsVisible="{Binding !IsFolder}"/>
+                                    <MenuItem Header="New Folder"
+                                              Tag="{Binding}"
+                                              Click="NewSubFolder_Click"
+                                              IsVisible="{Binding IsFolder}"/>
+                                    <Separator/>
+                                    <MenuItem Header="Rename"
+                                              Tag="{Binding}"
+                                              Click="RenameItem_Click"/>
+                                    <MenuItem Header="Delete"
+                                              Tag="{Binding}"
+                                              Click="DeleteItem_Click"/>
+                                </ContextMenu>
+                            </Border.ContextMenu>
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <!-- Folder icon -->
+                                <PathIcon Data="M2 4a2 2 0 0 1 2-2h3.172a2 2 0 0 1 1.414.586l.828.828A1 1 0 0 0 10.121 3.707L10.828 4H14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4z"
+                                          Width="14" Height="14"
+                                          Foreground="{DynamicResource NotesFolderIcon}"
+                                          VerticalAlignment="Center"
+                                          IsVisible="{Binding IsFolder}"/>
+                                <!-- Note icon -->
+                                <PathIcon Data="M4 2a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.414a1 1 0 0 0-.293-.707l-3.414-3.414A1 1 0 0 0 9.586 3H9V2H4zm5 1.414L12.586 7H10a1 1 0 0 1-1-1V3.414zM5 9h6v1H5V9zm0 2h4v1H5v-1z"
+                                          Width="14" Height="14"
+                                          Foreground="{DynamicResource NotesNoteIcon}"
+                                          VerticalAlignment="Center"
+                                          IsVisible="{Binding !IsFolder}"/>
+                                <!-- Display name (non-editing) -->
+                                <TextBlock Text="{Binding Name}"
+                                           FontSize="12"
+                                           VerticalAlignment="Center"
+                                           IsVisible="{Binding !IsEditing}"/>
+                                <!-- Rename textbox (editing) -->
+                                <TextBox Text="{Binding EditName}"
+                                         FontSize="12"
+                                         MinWidth="100"
+                                         Padding="2,0"
+                                         IsVisible="{Binding IsEditing}"
+                                         LostFocus="RenameTextBox_LostFocus"
+                                         KeyDown="RenameTextBox_KeyDown"
+                                         x:Name="RenameTextBox"/>
+                            </StackPanel>
+                        </Border>
+                    </TreeDataTemplate>
+                </TreeView.ItemTemplate>
+
+                <TreeView.Styles>
+                    <Style Selector="TreeViewItem" x:DataType="vm:NoteTreeItemViewModel">
+                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                        <Setter Property="Padding" Value="0"/>
+                    </Style>
+                    <Style Selector="Border.dropTarget">
+                        <Setter Property="Background" Value="{DynamicResource NotesDropTargetHighlight}"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource DragGhostBorder}"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                    </Style>
+                </TreeView.Styles>
+            </TreeView>
+        </DockPanel>
+    </Border>
+
+    <!-- Drag ghost overlay -->
+    <Border x:Name="DragGhost"
+            IsVisible="False"
+            IsHitTestVisible="False"
+            Background="{DynamicResource DragGhostBackground}"
+            BorderBrush="{DynamicResource DragGhostBorder}"
+            BorderThickness="1"
+            CornerRadius="3"
+            Padding="8,3"
+            Opacity="0.9"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top">
+        <TextBlock x:Name="DragGhostText"
+                   FontSize="11"
+                   Foreground="{DynamicResource DragGhostForeground}"/>
+    </Border>
+    </Panel>
+</UserControl>

@@ -16,6 +16,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private readonly CacheService _cacheService;
     private readonly SyntaxService _syntaxService;
     private readonly FileChangeService _fileChangeService;
+    private readonly NoteService _noteService;
     private TabViewModel? _selectedTab;
     private double _fontSize = 10;
     private bool _showWhitespace = false;
@@ -23,6 +24,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private bool _useLightTheme = false;
     private bool _isSearchPanelOpen;
     private double _searchPanelWidth = 350;
+    private bool _isNotesPanelOpen;
+    private double _notesPanelWidth = 300;
     private StatusBarViewModel _statusBar = new();
 
     // Window position/size state
@@ -36,12 +39,13 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public event EventHandler<TabViewModel>? ExternalChangeDetected;
     public event EventHandler<bool>? ThemeChanged;
 
-    public MainWindowViewModel(StateService stateService, CacheService cacheService, SyntaxService syntaxService, FileChangeService fileChangeService)
+    public MainWindowViewModel(StateService stateService, CacheService cacheService, SyntaxService syntaxService, FileChangeService fileChangeService, NoteService noteService)
     {
         _stateService = stateService;
         _cacheService = cacheService;
         _syntaxService = syntaxService;
         _fileChangeService = fileChangeService;
+        _noteService = noteService;
 
         Tabs = new ObservableCollection<TabViewModel>();
 
@@ -57,6 +61,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
         ToggleLineNumbersCommand = new RelayCommand(_ => ShowLineNumbers = !ShowLineNumbers);
         ToggleLightThemeCommand = new RelayCommand(_ => UseLightTheme = !UseLightTheme);
         ToggleSearchPanelCommand = new RelayCommand(_ => IsSearchPanelOpen = !IsSearchPanelOpen);
+        ToggleNotesPanelCommand = new RelayCommand(_ => IsNotesPanelOpen = !IsNotesPanelOpen);
+        SaveAsNoteCommand = new RelayCommand(_ => SaveAsNote());
 
         LoadState();
 
@@ -188,6 +194,35 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
+    public bool IsNotesPanelOpen
+    {
+        get => _isNotesPanelOpen;
+        set
+        {
+            if (_isNotesPanelOpen != value)
+            {
+                _isNotesPanelOpen = value;
+                OnPropertyChanged();
+                SaveState();
+            }
+        }
+    }
+
+    public double NotesPanelWidth
+    {
+        get => _notesPanelWidth;
+        set
+        {
+            if (Math.Abs(_notesPanelWidth - value) > 0.5)
+            {
+                _notesPanelWidth = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public NoteService NoteService => _noteService;
+
     public ICommand NewTabCommand { get; }
     public ICommand CloseTabCommand { get; }
     public ICommand CloseOthersCommand { get; }
@@ -200,6 +235,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public ICommand ToggleLineNumbersCommand { get; }
     public ICommand ToggleLightThemeCommand { get; }
     public ICommand ToggleSearchPanelCommand { get; }
+    public ICommand ToggleNotesPanelCommand { get; }
+    public ICommand SaveAsNoteCommand { get; }
 
     public StatusBarViewModel StatusBar => _statusBar;
 
@@ -274,6 +311,16 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
     public void SaveFile(TabViewModel tab, string? filePath = null)
     {
+        if (tab.IsNote && filePath == null)
+        {
+            // Save note to cache
+            _cacheService.SaveCache(tab.Id, tab.Content);
+            tab.MarkAsSaved();
+            _noteService.UpdateNote(tab.Id, tab.Title, tab.SyntaxName);
+            SaveState();
+            return;
+        }
+
         if (filePath != null)
         {
             tab.FilePath = filePath;
@@ -315,8 +362,9 @@ public class MainWindowViewModel : INotifyPropertyChanged
             SelectedTab = null;
         }
 
-        // Delete cache for closed tab
-        _cacheService.DeleteCache(tab.Id);
+        // Delete cache for closed tab (but not for notes - they persist)
+        if (!tab.IsNote)
+            _cacheService.DeleteCache(tab.Id);
 
         SaveState();
     }
@@ -340,7 +388,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
         var tabsToClose = Tabs.Where(t => t != tab).ToList();
         foreach (var t in tabsToClose)
         {
-            _cacheService.DeleteCache(t.Id);
+            if (!t.IsNote)
+                _cacheService.DeleteCache(t.Id);
             Tabs.Remove(t);
         }
 
@@ -358,7 +407,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
         var tabsToClose = Tabs.Skip(index + 1).ToList();
         foreach (var t in tabsToClose)
         {
-            _cacheService.DeleteCache(t.Id);
+            if (!t.IsNote)
+                _cacheService.DeleteCache(t.Id);
             Tabs.Remove(t);
         }
 
@@ -375,7 +425,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
         var tabsToClose = Tabs.Take(index).ToList();
         foreach (var t in tabsToClose)
         {
-            _cacheService.DeleteCache(t.Id);
+            if (!t.IsNote)
+                _cacheService.DeleteCache(t.Id);
             Tabs.Remove(t);
         }
 
@@ -390,7 +441,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
         foreach (var t in tabsToClose)
         {
-            _cacheService.DeleteCache(t.Id);
+            if (!t.IsNote)
+                _cacheService.DeleteCache(t.Id);
             Tabs.Remove(t);
         }
 
@@ -422,7 +474,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
         var tabsToClose = Tabs.ToList();
         foreach (var tab in tabsToClose)
         {
-            _cacheService.DeleteCache(tab.Id);
+            if (!tab.IsNote)
+                _cacheService.DeleteCache(tab.Id);
             Tabs.Remove(tab);
         }
 
@@ -434,20 +487,100 @@ public class MainWindowViewModel : INotifyPropertyChanged
     {
         foreach (var tab in Tabs)
         {
-            if (tab.IsDirty && !string.IsNullOrEmpty(tab.FilePath))
+            if (tab.IsDirty)
             {
-                try
+                if (tab.IsNote)
                 {
-                    File.WriteAllText(tab.FilePath, tab.Content);
-                    tab.LastKnownModified = File.GetLastWriteTimeUtc(tab.FilePath);
+                    _cacheService.SaveCache(tab.Id, tab.Content);
                     tab.MarkAsSaved();
+                    _noteService.UpdateNote(tab.Id, tab.Title, tab.SyntaxName);
                 }
-                catch (Exception)
+                else if (!string.IsNullOrEmpty(tab.FilePath))
                 {
-                    // Skip tabs that fail to save
+                    try
+                    {
+                        File.WriteAllText(tab.FilePath, tab.Content);
+                        tab.LastKnownModified = File.GetLastWriteTimeUtc(tab.FilePath);
+                        tab.MarkAsSaved();
+                    }
+                    catch (Exception)
+                    {
+                        // Skip tabs that fail to save
+                    }
                 }
             }
         }
+
+        SaveState();
+    }
+
+    public void SaveAsNote(TabViewModel? tab = null)
+    {
+        tab ??= SelectedTab;
+        if (tab == null || tab.IsNote) return;
+
+        tab.IsNote = true;
+        _cacheService.SaveCache(tab.Id, tab.Content);
+        _noteService.CreateNote(tab.Id, tab.Title, tab.SyntaxName);
+        tab.SetOriginalContent(tab.Content);
+        SaveState();
+    }
+
+    public void OpenNote(Models.NoteState note)
+    {
+        // Check if already open
+        var existing = Tabs.FirstOrDefault(t => t.Id == note.Id);
+        if (existing != null)
+        {
+            SelectedTab = existing;
+            return;
+        }
+
+        var state = new Models.TabState
+        {
+            Id = note.Id,
+            Title = note.Title,
+            IsNote = true,
+            SyntaxName = note.SyntaxName
+        };
+        var tab = TabViewModel.FromState(state, _cacheService, _syntaxService);
+        Tabs.Add(tab);
+        SelectedTab = tab;
+        SaveState();
+    }
+
+    public void DeleteNote(Guid noteId)
+    {
+        // Close open tab if exists
+        var openTab = Tabs.FirstOrDefault(t => t.Id == noteId);
+        if (openTab != null)
+        {
+            Tabs.Remove(openTab);
+            if (SelectedTab == openTab)
+                SelectedTab = Tabs.Count > 0 ? Tabs[0] : null;
+        }
+
+        _cacheService.DeleteCache(noteId);
+        _noteService.DeleteNote(noteId);
+        SaveState();
+    }
+
+    public void DeleteFolder(Guid folderId)
+    {
+        var deletedNoteIds = _noteService.DeleteFolder(folderId);
+
+        foreach (var noteId in deletedNoteIds)
+        {
+            var openTab = Tabs.FirstOrDefault(t => t.Id == noteId);
+            if (openTab != null)
+            {
+                Tabs.Remove(openTab);
+            }
+            _cacheService.DeleteCache(noteId);
+        }
+
+        if (SelectedTab != null && !Tabs.Contains(SelectedTab))
+            SelectedTab = Tabs.Count > 0 ? Tabs[0] : null;
 
         SaveState();
     }
@@ -476,7 +609,9 @@ public class MainWindowViewModel : INotifyPropertyChanged
             WindowY = WindowY,
             IsMaximized = IsMaximized,
             SearchPanelOpen = _isSearchPanelOpen,
-            SearchPanelWidth = _searchPanelWidth
+            SearchPanelWidth = _searchPanelWidth,
+            NotesPanelOpen = _isNotesPanelOpen,
+            NotesPanelWidth = _notesPanelWidth
         };
 
         _stateService.SaveState(state);
@@ -497,6 +632,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
         IsMaximized = state.IsMaximized;
         _isSearchPanelOpen = state.SearchPanelOpen;
         _searchPanelWidth = state.SearchPanelWidth > 0 ? state.SearchPanelWidth : 350;
+        _isNotesPanelOpen = state.NotesPanelOpen;
+        _notesPanelWidth = state.NotesPanelWidth > 0 ? state.NotesPanelWidth : 300;
 
         foreach (var tabState in state.Tabs.OrderBy(t => t.Order))
         {

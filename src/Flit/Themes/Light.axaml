@@ -37,6 +37,16 @@
         <SolidColorBrush x:Key="SearchMatchHighlight" Color="#ffcc66"/>
         <SolidColorBrush x:Key="SearchModeButtonActive" Color="#d4d4d4"/>
         <SolidColorBrush x:Key="SearchModeButtonInactive" Color="#e8e8e8"/>
+        <!-- Note tab border -->
+        <SolidColorBrush x:Key="NoteTabBorderColor" Color="#c8960c"/>
+        <!-- Notes panel resources -->
+        <SolidColorBrush x:Key="NotesPanelBackground" Color="#f3f3f3"/>
+        <SolidColorBrush x:Key="NotesPanelBorder" Color="#c8c8c8"/>
+        <SolidColorBrush x:Key="NotesPanelHeaderBackground" Color="#e8e8e8"/>
+        <SolidColorBrush x:Key="NotesPanelHeaderText" Color="#1e1e1e"/>
+        <SolidColorBrush x:Key="NotesFolderIcon" Color="#c8960c"/>
+        <SolidColorBrush x:Key="NotesNoteIcon" Color="#0078d4"/>
+        <SolidColorBrush x:Key="NotesDropTargetHighlight" Color="#3a0078d4"/>
     </Styles.Resources>
 
     <Style Selector="Window">

@@ -40,12 +40,13 @@ public partial class App : Application
             var cacheService = new CacheService();
             _syntaxService = new SyntaxService();
             var fileChangeService = new FileChangeService();
+            var noteService = new NoteService();
 
             // Load initial theme based on saved preference
             var state = stateService.LoadState();
             ApplyTheme(state.UseLightTheme);
 
-            var viewModel = new MainWindowViewModel(stateService, cacheService, _syntaxService, fileChangeService);
+            var viewModel = new MainWindowViewModel(stateService, cacheService, _syntaxService, fileChangeService, noteService);
 
             // Subscribe to theme changes
             viewModel.ThemeChanged += (s, useLightTheme) => ApplyTheme(useLightTheme);

@@ -28,6 +28,7 @@
         <KeyBinding Gesture="Ctrl+F" Command="{Binding #MainWin.FindCommand}" />
         <KeyBinding Gesture="Ctrl+Shift+F" Command="{Binding #MainWin.ToggleSearchPanelCommand}" />
         <KeyBinding Gesture="Ctrl+H" Command="{Binding #MainWin.ReplaceCommand}" />
+        <KeyBinding Gesture="Ctrl+Shift+N" Command="{Binding ToggleNotesPanelCommand}" />
     </Window.KeyBindings>
 
     <Panel>
@@ -53,6 +54,8 @@
                             <MenuItem Header="_Save" Click="SaveFile_Click" InputGesture="Ctrl+S" />
                             <MenuItem Header="Save _As..." Click="SaveAs_Click" InputGesture="Ctrl+Shift+S" />
                             <MenuItem Header="Save A_ll" Command="{Binding SaveAllCommand}" InputGesture="Ctrl+Shift+A" />
+                            <MenuItem Header="Save as _Note" Click="SaveAsNote_Click"
+                                      IsVisible="{Binding SelectedTab.IsNote, Converter={x:Static BoolConverters.Not}, FallbackValue=True}"/>
                             <Separator />
                             <MenuItem Header="_Close Tab" Click="CloseTab_MenuItem_Click" InputGesture="Ctrl+W" />
                             <MenuItem Header="Close _All" Click="CloseAll_MenuItem_Click" />
@@ -81,6 +84,16 @@
                                       InputGesture="Ctrl+Shift+W">
                                 <MenuItem.Icon>
                                     <CheckBox IsChecked="{Binding ShowWhitespace}"
+                                              BorderThickness="0"
+                                              IsHitTestVisible="False"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator />
+                            <MenuItem Header="_Notes Panel"
+                                      Command="{Binding ToggleNotesPanelCommand}"
+                                      InputGesture="Ctrl+Shift+N">
+                                <MenuItem.Icon>
+                                    <CheckBox IsChecked="{Binding IsNotesPanelOpen}"
                                               BorderThickness="0"
                                               IsHitTestVisible="False"/>
                                 </MenuItem.Icon>
@@ -244,6 +257,8 @@
                                                 <Separator />
                                                 <MenuItem Header="Save" Tag="{Binding}" Click="SaveTab_Click" />
                                                 <MenuItem Header="Save As..." Tag="{Binding}" Click="SaveTabAs_Click" />
+                                                <MenuItem Header="Save as Note" Tag="{Binding}" Click="SaveAsNote_Tab_Click"
+                                                          IsVisible="{Binding IsNote, Converter={x:Static BoolConverters.Not}}"/>
                                                 <Separator />
                                                 <MenuItem Header="Rename..." Tag="{Binding}" Click="RenameTab_Click" />
                                             </ContextMenu>
@@ -285,11 +300,13 @@
                                                     VerticalAlignment="Center"
                                                     Classes="tabclose"/>
                                         </StackPanel>
-                                        <!-- Selection indicator -->
-                                        <Border x:Name="SelectionIndicator"
-                                                Grid.Row="1"
-                                                Background="{DynamicResource AccentColor}"
-                                                IsVisible="{Binding $parent[ListBoxItem].IsSelected}"/>
+                                        <!-- Selection / Note indicator -->
+                                        <Panel Grid.Row="1">
+                                            <Border Background="{DynamicResource AccentColor}"
+                                                    IsVisible="{Binding $parent[ListBoxItem].IsSelected}"/>
+                                            <Border Background="{DynamicResource NoteTabBorderColor}"
+                                                    IsVisible="{Binding IsNote}"/>
+                                        </Panel>
                                     </Grid>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -297,18 +314,20 @@
                     </DockPanel>
                 </Border>
 
-                <!-- Tab Content with Search Panel -->
+                <!-- Tab Content with Search Panel and Notes Panel -->
                 <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="0" MinWidth="0" MaxWidth="0"/>
                         <ColumnDefinition Width="0"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="0"/>
+                        <ColumnDefinition Width="0" MinWidth="0" MaxWidth="0"/>
                     </Grid.ColumnDefinitions>
 
                     <!-- Search Panel -->
                     <views:SearchPanel x:Name="SearchPanelControl" Grid.Column="0"/>
 
-                    <!-- Grid Splitter -->
+                    <!-- Search Splitter -->
                     <GridSplitter x:Name="SearchSplitter"
                                   Grid.Column="1"
                                   Width="5"
@@ -325,6 +344,17 @@
                             </DataTemplate>
                         </ContentControl.ContentTemplate>
                     </ContentControl>
+
+                    <!-- Notes Splitter -->
+                    <GridSplitter x:Name="NotesSplitter"
+                                  Grid.Column="3"
+                                  Width="5"
+                                  Background="Transparent"
+                                  ResizeDirection="Columns"
+                                  IsVisible="False"/>
+
+                    <!-- Notes Panel -->
+                    <views:NotesPanel x:Name="NotesPanelControl" Grid.Column="4"/>
                 </Grid>
             </Grid>
         </DockPanel>

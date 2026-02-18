@@ -44,4 +44,10 @@ public class AppState
 
     [JsonPropertyName("searchPanelWidth")]
     public double SearchPanelWidth { get; set; } = 350;
+
+    [JsonPropertyName("notesPanelOpen")]
+    public bool NotesPanelOpen { get; set; }
+
+    [JsonPropertyName("notesPanelWidth")]
+    public double NotesPanelWidth { get; set; } = 300;
 }

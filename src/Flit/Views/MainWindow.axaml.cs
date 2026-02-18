@@ -1,15 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Media;
-using Avalonia.Platform.Storage;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
-using Flit.Services;
 using Flit.ViewModels;
 
 namespace Flit.Views;
@@ -33,6 +28,11 @@ public partial class MainWindow : Window
     private ColumnDefinition? _searchPanelColumn;
     private ColumnDefinition? _searchSplitterColumn;
     private GridSplitter? _searchSplitter;
+    private NotesPanel? _notesPanel;
+    private NotesPanelViewModel? _notesPanelViewModel;
+    private ColumnDefinition? _notesPanelColumn;
+    private ColumnDefinition? _notesSplitterColumn;
+    private GridSplitter? _notesSplitter;
 
     public MainWindow()
     {
@@ -77,12 +77,25 @@ public partial class MainWindow : Window
             ToggleSearchPanel();
             e.Handled = true;
         }
+        else if (e.Key == Key.N && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift))
+        {
+            ToggleNotesPanel();
+            e.Handled = true;
+        }
         else if (e.Key == Key.Escape && ViewModel?.IsSearchPanelOpen == true && _searchPanel != null)
         {
             // Close search panel if it (or its children) has focus
             if (_searchPanel.IsKeyboardFocusWithin)
             {
                 ViewModel.IsSearchPanelOpen = false;
+                e.Handled = true;
+            }
+        }
+        else if (e.Key == Key.Escape && ViewModel?.IsNotesPanelOpen == true && _notesPanel != null)
+        {
+            if (_notesPanel.IsKeyboardFocusWithin)
+            {
+                ViewModel.IsNotesPanelOpen = false;
                 e.Handled = true;
             }
         }
@@ -113,12 +126,14 @@ public partial class MainWindow : Window
             ViewModel.ExternalChangeDetected += OnExternalChangeDetected;
             RestoreWindowPosition();
             InitializeSearchPanel();
+            InitializeNotesPanel();
         }
     }
 
     private void RestoreWindowPosition()
     {
-        if (ViewModel == null) return;
+        if (ViewModel == null)
+            return;
 
         Width = ViewModel.WindowWidth;
         Height = ViewModel.WindowHeight;
@@ -147,7 +162,8 @@ public partial class MainWindow : Window
 
     private bool IsPositionVisible(int x, int y)
     {
-        if (Screens?.All == null) return false;
+        if (Screens?.All == null)
+            return false;
 
         // Check if any part of the window title bar is visible on any screen
         foreach (var screen in Screens.All)
@@ -167,7 +183,8 @@ public partial class MainWindow : Window
 
     private void UpdateWindowBoundsOnViewModel()
     {
-        if (ViewModel == null) return;
+        if (ViewModel == null)
+            return;
 
         ViewModel.IsMaximized = WindowState == WindowState.Maximized;
 
@@ -258,7 +275,8 @@ public partial class MainWindow : Window
 
     private void Window_PointerMoved(object? sender, PointerEventArgs e)
     {
-        if (_draggedTab == null || _draggedElement == null) return;
+        if (_draggedTab == null || _draggedElement == null)
+            return;
 
         var currentPoint = e.GetPosition(this);
         var diff = currentPoint - _dragStartPoint;
@@ -296,7 +314,8 @@ public partial class MainWindow : Window
 
     private void UpdateDragGhostPosition(Point mousePos)
     {
-        if (_dragGhost == null) return;
+        if (_dragGhost == null)
+            return;
 
         // Offset the ghost slightly from cursor
         Canvas.SetLeft(_dragGhost, mousePos.X + 10);
@@ -305,11 +324,13 @@ public partial class MainWindow : Window
 
     private void UpdateDropIndicator(Point mousePos)
     {
-        if (ViewModel == null || _tabStrip == null) return;
+        if (ViewModel == null || _tabStrip == null)
+            return;
 
         // Find all tab item containers
         var tabItems = GetTabItemContainers();
-        if (tabItems.Count == 0) return;
+        if (tabItems.Count == 0)
+            return;
 
         int newDropIndex = ViewModel.Tabs.Count; // Default to end
 
@@ -377,7 +398,8 @@ public partial class MainWindow : Window
     private List<ListBoxItem> GetTabItemContainers()
     {
         var result = new List<ListBoxItem>();
-        if (_tabStrip == null) return result;
+        if (_tabStrip == null)
+            return result;
 
         // Find all ListBoxItems in the tab strip
         foreach (var item in _tabStrip.GetVisualDescendants().OfType<ListBoxItem>())
@@ -468,7 +490,14 @@ public partial class MainWindow : Window
     private async System.Threading.Tasks.Task SaveFileAsync()
     {
         var tab = ViewModel?.SelectedTab;
-        if (tab == null) return;
+        if (tab == null)
+            return;
+
+        if (tab.IsNote)
+        {
+            ViewModel?.SaveFile(tab);
+            return;
+        }
 
         if (string.IsNullOrEmpty(tab.FilePath))
         {
@@ -482,14 +511,22 @@ public partial class MainWindow : Window
     private async System.Threading.Tasks.Task SaveAsAsync()
     {
         var tab = ViewModel?.SelectedTab;
-        if (tab == null) return;
+        if (tab == null)
+            return;
 
         await SaveTabAsAsync(tab);
     }
 
     private async System.Threading.Tasks.Task SaveTabAsync(TabViewModel? tab)
     {
-        if (tab == null) return;
+        if (tab == null)
+            return;
+
+        if (tab.IsNote)
+        {
+            ViewModel?.SaveFile(tab);
+            return;
+        }
 
         if (string.IsNullOrEmpty(tab.FilePath))
         {
@@ -502,7 +539,8 @@ public partial class MainWindow : Window
 
     private async System.Threading.Tasks.Task SaveTabAsAsync(TabViewModel? tab)
     {
-        if (tab == null) return;
+        if (tab == null)
+            return;
 
         var suggestedName = tab.Title;
         if (string.IsNullOrEmpty(System.IO.Path.GetExtension(suggestedName)))
@@ -534,7 +572,8 @@ public partial class MainWindow : Window
 
     private async System.Threading.Tasks.Task RenameTabAsync(TabViewModel? tab)
     {
-        if (tab == null) return;
+        if (tab == null)
+            return;
 
         var dialog = new RenameDialog(tab.Title);
         var result = await dialog.ShowDialog<string?>(this);
@@ -685,7 +724,8 @@ public partial class MainWindow : Window
 
     public async System.Threading.Tasks.Task<bool> TryCloseTabAsync(TabViewModel? tab)
     {
-        if (tab == null) return true;
+        if (tab == null)
+            return true;
 
         if (tab.IsDirty)
         {
@@ -695,10 +735,15 @@ public partial class MainWindow : Window
             switch (result)
             {
                 case UnsavedChangesResult.Save:
-                    if (string.IsNullOrEmpty(tab.FilePath))
+                    if (tab.IsNote)
+                    {
+                        ViewModel?.SaveFile(tab);
+                    }
+                    else if (string.IsNullOrEmpty(tab.FilePath))
                     {
                         await SaveTabAsAsync(tab);
-                        if (tab.IsDirty) return false; // Save was cancelled
+                        if (tab.IsDirty)
+                            return false; // Save was cancelled
                     }
                     else
                     {
@@ -718,7 +763,8 @@ public partial class MainWindow : Window
 
     public async System.Threading.Tasks.Task<bool> TryCloseAllDirtyTabsAsync()
     {
-        if (ViewModel == null) return true;
+        if (ViewModel == null)
+            return true;
 
         var dirtyTabs = ViewModel.Tabs.Where(t => t.IsDirty).ToList();
         foreach (var tab in dirtyTabs)
@@ -729,10 +775,15 @@ public partial class MainWindow : Window
             switch (result)
             {
                 case UnsavedChangesResult.Save:
-                    if (string.IsNullOrEmpty(tab.FilePath))
+                    if (tab.IsNote)
+                    {
+                        ViewModel.SaveFile(tab);
+                    }
+                    else if (string.IsNullOrEmpty(tab.FilePath))
                     {
                         await SaveTabAsAsync(tab);
-                        if (tab.IsDirty) return false;
+                        if (tab.IsDirty)
+                            return false;
                     }
                     else
                     {
@@ -751,7 +802,8 @@ public partial class MainWindow : Window
 
     private async System.Threading.Tasks.Task TryCloseOthersAsync(TabViewModel? tab)
     {
-        if (tab == null || ViewModel == null) return;
+        if (tab == null || ViewModel == null)
+            return;
 
         var tabsToClose = ViewModel.Tabs.Where(t => t != tab).ToList();
         foreach (var t in tabsToClose)
@@ -763,10 +815,12 @@ public partial class MainWindow : Window
 
     private async System.Threading.Tasks.Task TryCloseToRightAsync(TabViewModel? tab)
     {
-        if (tab == null || ViewModel == null) return;
+        if (tab == null || ViewModel == null)
+            return;
 
         var index = ViewModel.Tabs.IndexOf(tab);
-        if (index < 0) return;
+        if (index < 0)
+            return;
 
         var tabsToClose = ViewModel.Tabs.Skip(index + 1).ToList();
         foreach (var t in tabsToClose)
@@ -778,10 +832,12 @@ public partial class MainWindow : Window
 
     private async System.Threading.Tasks.Task TryCloseToLeftAsync(TabViewModel? tab)
     {
-        if (tab == null || ViewModel == null) return;
+        if (tab == null || ViewModel == null)
+            return;
 
         var index = ViewModel.Tabs.IndexOf(tab);
-        if (index <= 0) return;
+        if (index <= 0)
+            return;
 
         var tabsToClose = ViewModel.Tabs.Take(index).ToList();
         foreach (var t in tabsToClose)
@@ -793,7 +849,8 @@ public partial class MainWindow : Window
 
     private async System.Threading.Tasks.Task TryCloseAllAsync()
     {
-        if (ViewModel == null) return;
+        if (ViewModel == null)
+            return;
 
         var tabsToClose = ViewModel.Tabs.ToList();
         foreach (var t in tabsToClose)
@@ -807,7 +864,8 @@ public partial class MainWindow : Window
     {
         var editorView = GetCurrentEditorView();
         var editor = editorView?.GetEditor();
-        if (editor == null) return;
+        if (editor == null)
+            return;
 
         var dialog = new FindReplaceDialog(editor);
         dialog.Show(this);
@@ -815,7 +873,8 @@ public partial class MainWindow : Window
 
     private void ShowFindInTabsDialog()
     {
-        if (ViewModel == null) return;
+        if (ViewModel == null)
+            return;
 
         var dialog = new FindInTabsDialog(ViewModel, GoToSearchResult);
         dialog.Show(this);
@@ -823,7 +882,8 @@ public partial class MainWindow : Window
 
     private void GoToSearchResult(TabViewModel tab, int offset, int length, int line)
     {
-        if (ViewModel == null) return;
+        if (ViewModel == null)
+            return;
 
         // Switch to the tab
         ViewModel.SelectedTab = tab;
@@ -856,7 +916,8 @@ public partial class MainWindow : Window
 
     private void ToggleSearchPanel()
     {
-        if (ViewModel == null) return;
+        if (ViewModel == null)
+            return;
 
         ViewModel.IsSearchPanelOpen = !ViewModel.IsSearchPanelOpen;
 
@@ -872,7 +933,8 @@ public partial class MainWindow : Window
 
     private void InitializeSearchPanel()
     {
-        if (ViewModel == null) return;
+        if (ViewModel == null)
+            return;
 
         _searchPanel = this.FindControl<SearchPanel>("SearchPanelControl");
         _searchSplitter = this.FindControl<GridSplitter>("SearchSplitter");
@@ -883,7 +945,8 @@ public partial class MainWindow : Window
             _searchPanelColumn = contentGrid.ColumnDefinitions[0];
             _searchSplitterColumn = contentGrid.ColumnDefinitions[1];
         }
-        if (_searchPanel == null) return;
+        if (_searchPanel == null)
+            return;
 
         _searchPanelViewModel = new SearchPanelViewModel(ViewModel);
         _searchPanel.DataContext = _searchPanelViewModel;
@@ -919,14 +982,16 @@ public partial class MainWindow : Window
 
         _searchPanel.ResultSelected += (s, item) =>
         {
-            if (item == null) return;
+            if (item == null)
+                return;
             NavigateToSearchResult(item);
         };
     }
 
     private void ShowSearchPanel()
     {
-        if (_searchPanelColumn == null) return;
+        if (_searchPanelColumn == null)
+            return;
         var width = ViewModel?.SearchPanelWidth ?? 350;
         _searchPanelColumn.Width = new GridLength(width);
         _searchPanelColumn.MinWidth = 250;
@@ -939,7 +1004,8 @@ public partial class MainWindow : Window
 
     private void HideSearchPanel()
     {
-        if (_searchPanelColumn == null) return;
+        if (_searchPanelColumn == null)
+            return;
         // Save current width before hiding
         if (ViewModel != null)
             ViewModel.SearchPanelWidth = _searchPanelColumn.Width.Value;
@@ -972,7 +1038,8 @@ public partial class MainWindow : Window
 
     private void NavigateToSearchResult(SearchResultItem item)
     {
-        if (ViewModel == null) return;
+        if (ViewModel == null)
+            return;
 
         if (item.Tab != null)
         {
@@ -987,6 +1054,114 @@ public partial class MainWindow : Window
         }
     }
 
+    // --- Notes Panel ---
+
+    private void InitializeNotesPanel()
+    {
+        if (ViewModel == null)
+            return;
+
+        _notesPanel = this.FindControl<NotesPanel>("NotesPanelControl");
+        _notesSplitter = this.FindControl<GridSplitter>("NotesSplitter");
+        var contentGrid = _notesPanel?.Parent as Grid;
+        if (contentGrid?.ColumnDefinitions.Count >= 5)
+        {
+            _notesPanelColumn = contentGrid.ColumnDefinitions[4];
+            _notesSplitterColumn = contentGrid.ColumnDefinitions[3];
+        }
+        if (_notesPanel == null)
+            return;
+
+        _notesPanelViewModel = new NotesPanelViewModel(ViewModel);
+        _notesPanel.DataContext = _notesPanelViewModel;
+
+        // Set initial state
+        if (ViewModel.IsNotesPanelOpen)
+        {
+            ShowNotesPanel();
+        }
+
+        // React to ViewModel changes
+        ViewModel.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(MainWindowViewModel.IsNotesPanelOpen))
+            {
+                if (ViewModel.IsNotesPanelOpen)
+                    ShowNotesPanel();
+                else
+                    HideNotesPanel();
+            }
+        };
+
+        _notesPanel.CloseRequested += (s, e) =>
+        {
+            if (ViewModel != null)
+                ViewModel.IsNotesPanelOpen = false;
+        };
+
+        _notesPanel.NoteOpened += (s, item) =>
+        {
+            if (item == null || ViewModel == null)
+                return;
+            var note = ViewModel.NoteService.GetNote(item.Id);
+            if (note != null)
+                ViewModel.OpenNote(note);
+        };
+    }
+
+    private void ShowNotesPanel()
+    {
+        if (_notesPanelColumn == null)
+            return;
+        var width = ViewModel?.NotesPanelWidth ?? 300;
+        _notesPanelColumn.Width = new GridLength(width);
+        _notesPanelColumn.MinWidth = 200;
+        _notesPanelColumn.MaxWidth = 500;
+        if (_notesSplitterColumn != null)
+            _notesSplitterColumn.Width = GridLength.Auto;
+        if (_notesSplitter != null)
+            _notesSplitter.IsVisible = true;
+        _notesPanelViewModel?.RefreshTree();
+    }
+
+    private void HideNotesPanel()
+    {
+        if (_notesPanelColumn == null)
+            return;
+        // Save current width before hiding
+        if (ViewModel != null)
+            ViewModel.NotesPanelWidth = _notesPanelColumn.Width.Value;
+        _notesPanelColumn.Width = new GridLength(0);
+        _notesPanelColumn.MinWidth = 0;
+        _notesPanelColumn.MaxWidth = 0;
+        if (_notesSplitterColumn != null)
+            _notesSplitterColumn.Width = new GridLength(0);
+        if (_notesSplitter != null)
+            _notesSplitter.IsVisible = false;
+    }
+
+    private void ToggleNotesPanel()
+    {
+        if (ViewModel == null)
+            return;
+        ViewModel.IsNotesPanelOpen = !ViewModel.IsNotesPanelOpen;
+    }
+
+    private void SaveAsNote_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        ViewModel?.SaveAsNote();
+        _notesPanelViewModel?.RefreshTree();
+    }
+
+    private void SaveAsNote_Tab_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is MenuItem menuItem && menuItem.Tag is TabViewModel tab)
+        {
+            ViewModel?.SaveAsNote(tab);
+            _notesPanelViewModel?.RefreshTree();
+        }
+    }
+
     private void Replace_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         ShowFindReplaceDialog();
@@ -994,10 +1169,12 @@ public partial class MainWindow : Window
 
     private async void LanguageButton_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (ViewModel?.SelectedTab == null) return;
+        if (ViewModel?.SelectedTab == null)
+            return;
 
         var syntaxService = App.Instance?.GetSyntaxService();
-        if (syntaxService == null) return;
+        if (syntaxService == null)
+            return;
 
         var dialog = new LanguagePickerDialog(syntaxService, ViewModel.SelectedTab.SyntaxName);
         var result = await dialog.ShowDialog<string?>(this);
@@ -1016,6 +1193,12 @@ public partial class MainWindow : Window
         if (ViewModel != null && ViewModel.IsSearchPanelOpen && _searchPanelColumn != null)
         {
             ViewModel.SearchPanelWidth = _searchPanelColumn.Width.Value;
+        }
+
+        // Save notes panel width before closing
+        if (ViewModel != null && ViewModel.IsNotesPanelOpen && _notesPanelColumn != null)
+        {
+            ViewModel.NotesPanelWidth = _notesPanelColumn.Width.Value;
         }
 
         ViewModel?.SaveState();

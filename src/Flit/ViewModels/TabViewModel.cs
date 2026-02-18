@@ -27,6 +27,7 @@ public class TabViewModel : INotifyPropertyChanged
     private DateTime? _lastKnownModified;
     private bool _hasExternalChanges;
     private bool _externalChangesAcknowledged;
+    private bool _isNote;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -190,6 +191,19 @@ public class TabViewModel : INotifyPropertyChanged
         }
     }
 
+    public bool IsNote
+    {
+        get => _isNote;
+        set
+        {
+            if (_isNote != value)
+            {
+                _isNote = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     public void SetOriginalContent(string content)
     {
         _isContentLoaded = true;
@@ -205,7 +219,8 @@ public class TabViewModel : INotifyPropertyChanged
         _originalContent = _content;
         IsDirty = false;
         HasCachedChanges = false;
-        _cacheService.DeleteCache(Id);
+        if (!_isNote)
+            _cacheService.DeleteCache(Id);
     }
 
     public void LoadFromCache()
@@ -224,6 +239,22 @@ public class TabViewModel : INotifyPropertyChanged
         if (_isContentLoaded) return;
         _isContentLoaded = true;
 
+        if (_isNote)
+        {
+            // For notes, cache IS the source of truth
+            var cachedContent = _cacheService.LoadCache(Id);
+            if (cachedContent != null)
+            {
+                _originalContent = cachedContent;
+                _content = cachedContent;
+                _isDirty = false;
+                _hasCachedChanges = false;
+            }
+
+            OnPropertyChanged(nameof(Content));
+            return;
+        }
+
         // Load file content if path exists
         if (!string.IsNullOrEmpty(_filePath) && File.Exists(_filePath))
         {
@@ -241,10 +272,10 @@ public class TabViewModel : INotifyPropertyChanged
         }
 
         // Load cached content if available (overrides file content)
-        var cachedContent = _cacheService.LoadCache(Id);
-        if (cachedContent != null)
+        var cachedContent2 = _cacheService.LoadCache(Id);
+        if (cachedContent2 != null)
         {
-            _content = cachedContent;
+            _content = cachedContent2;
             _isDirty = true;
             _hasCachedChanges = false; // No longer just cached, now loaded
             OnPropertyChanged(nameof(IsDirty));
@@ -263,7 +294,8 @@ public class TabViewModel : INotifyPropertyChanged
             FilePath = FilePath,
             Order = order,
             LastModified = _lastKnownModified,
-            SyntaxName = _syntaxName
+            SyntaxName = _syntaxName,
+            IsNote = _isNote
         };
     }
 
@@ -276,8 +308,9 @@ public class TabViewModel : INotifyPropertyChanged
             _filePath = state.FilePath,
             _isContentLoaded = false,
             _lastKnownModified = state.LastModified,
-            // Check if there's cached changes without loading content
-            _hasCachedChanges = cacheService.HasCache(state.Id)
+            _isNote = state.IsNote,
+            // For notes, cache is canonical so don't mark as "cached changes"
+            _hasCachedChanges = state.IsNote ? false : cacheService.HasCache(state.Id)
         };
 
         // Restore saved syntax name, or auto-detect if not saved
@@ -376,7 +409,7 @@ public class TabViewModel : INotifyPropertyChanged
 
     private void OnCacheTimerElapsed(object? sender, ElapsedEventArgs e)
     {
-        if (IsDirty)
+        if (_isNote || IsDirty)
         {
             _cacheService.SaveCache(Id, _content);
         }
