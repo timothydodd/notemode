@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Flit is a lightweight desktop text editor built with C# (.NET 10.0) and Avalonia UI framework using MVVM architecture.
+NoteMode is a lightweight desktop text editor built with C# (.NET 10.0) and Avalonia UI framework using MVVM architecture.
 
 ## Build Commands
 
@@ -14,13 +14,13 @@ cd src
 dotnet build
 
 # Run the application
-dotnet run --project Flit
+dotnet run --project NoteMode
 
 # Release build
 dotnet build -c Release
 ```
 
-Solution file: `src/Flit.sln`
+Solution file: `src/NoteMode.sln`
 
 ## Architecture
 
@@ -38,8 +38,8 @@ User Input → MainWindow Events → MainWindowViewModel Commands
 ```
 
 **State Persistence:**
-- App state: `~/.flit/state.json` (window size, font size, active tab, tabs list)
-- Tab content cache: `~/.flit/cache/{TabId}.cache` (auto-saved every 500ms)
+- App state: `~/.notemode/state.json` (window size, font size, active tab, tabs list)
+- Tab content cache: `~/.notemode/cache/{TabId}.cache` (auto-saved every 500ms)
 
 ## Key Dependencies
 

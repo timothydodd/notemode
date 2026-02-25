@@ -27,11 +27,11 @@ jobs:
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
       - name: Restore dependencies
-        run: dotnet restore src/Flit.sln
+        run: dotnet restore src/NoteMode.sln
 
       - name: Publish Windows x64
         run: |
-          dotnet publish src/Flit/Flit.csproj `
+          dotnet publish src/NoteMode/NoteMode.csproj `
             -c Release `
             -r win-x64 `
             --self-contained true `
@@ -42,7 +42,7 @@ jobs:
       - name: Create ZIP archive
         shell: pwsh
         run: |
-          Compress-Archive -Path publish/win-x64/* -DestinationPath Flit-${{ steps.version.outputs.VERSION }}-win-x64.zip
+          Compress-Archive -Path publish/win-x64/* -DestinationPath NoteMode-${{ steps.version.outputs.VERSION }}-win-x64.zip
 
       - name: Install WiX Toolset
         run: |
@@ -60,20 +60,20 @@ jobs:
           }
           $msiVersion = ($versionParts[0..2] -join '.')
 
-          wix build installer/Flit.wxs `
+          wix build installer/NoteMode.wxs `
             -arch x64 `
             -d ProductVersion=$msiVersion `
             -d "PublishDir=${{ github.workspace }}\publish\win-x64" `
-            -o Flit-${{ steps.version.outputs.VERSION }}-win-x64.msi `
+            -o NoteMode-${{ steps.version.outputs.VERSION }}-win-x64.msi `
             -ext WixToolset.UI.wixext
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          name: Flit ${{ steps.version.outputs.VERSION }}
+          name: NoteMode ${{ steps.version.outputs.VERSION }}
           draft: false
           prerelease: false
           generate_release_notes: true
           files: |
-            Flit-${{ steps.version.outputs.VERSION }}-win-x64.zip
-            Flit-${{ steps.version.outputs.VERSION }}-win-x64.msi
+            NoteMode-${{ steps.version.outputs.VERSION }}-win-x64.zip
+            NoteMode-${{ steps.version.outputs.VERSION }}-win-x64.msi

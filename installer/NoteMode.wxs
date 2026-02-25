@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <Package Name="NoteMode"
+           Manufacturer="Tim Dodd"
+           Version="$(ProductVersion)"
+           UpgradeCode="388513b1-b436-40dc-bd15-6b52a352e7fa">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of NoteMode is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- Icon for shortcuts and Add/Remove Programs -->
+    <Icon Id="NoteModeIcon.exe" SourceFile="$(PublishDir)\NoteMode.exe" />
+    <Property Id="ARPPRODUCTICON" Value="NoteModeIcon.exe" />
+
+    <Feature Id="ProductFeature" Title="NoteMode" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="ContextMenuComponents" />
+    </Feature>
+
+    <!-- UI for installation dialogs -->
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+
+    <!-- License shown during installation -->
+    <WixVariable Id="WixUILicenseRtf" Value="installer\license.rtf" />
+
+  </Package>
+
+  <Fragment>
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="INSTALLFOLDER" Name="NoteMode" />
+    </StandardDirectory>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Component Id="NoteModeExe" Guid="B2C3D4E5-F6A7-8901-BCDE-F23456789012">
+        <File Id="NoteModeExeFile"
+              Source="$(PublishDir)\NoteMode.exe"
+              KeyPath="yes">
+          <Shortcut Id="StartMenuShortcut"
+                    Directory="ProgramMenuFolder"
+                    Name="NoteMode"
+                    WorkingDirectory="INSTALLFOLDER"
+                    Icon="NoteModeIcon.exe"
+                    Advertise="yes" />
+        </File>
+      </Component>
+      <Files Include="$(PublishDir)\*.dll" />
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ContextMenuComponents" Directory="INSTALLFOLDER">
+      <!-- Context menu for all files -->
+      <Component Id="ContextMenuAllFiles" Guid="C3D4E5F6-A7B8-9012-CDEF-345678901234">
+        <RegistryKey Root="HKCR" Key="*\shell\EditWithNoteMode">
+          <RegistryValue Type="string" Value="Edit with NoteMode" />
+          <RegistryValue Type="string" Name="Icon" Value="[INSTALLFOLDER]NoteMode.exe,0" />
+        </RegistryKey>
+        <RegistryKey Root="HKCR" Key="*\shell\EditWithNoteMode\command">
+          <RegistryValue Type="string" Value="&quot;[INSTALLFOLDER]NoteMode.exe&quot; &quot;%1&quot;" KeyPath="yes" />
+        </RegistryKey>
+      </Component>
+
+      <!-- Context menu for directories (background) -->
+      <Component Id="ContextMenuDirectory" Guid="D4E5F6A7-B8C9-0123-DEFA-456789012345">
+        <RegistryKey Root="HKCR" Key="Directory\Background\shell\EditWithNoteMode">
+          <RegistryValue Type="string" Value="Open NoteMode here" />
+          <RegistryValue Type="string" Name="Icon" Value="[INSTALLFOLDER]NoteMode.exe,0" />
+        </RegistryKey>
+        <RegistryKey Root="HKCR" Key="Directory\Background\shell\EditWithNoteMode\command">
+          <RegistryValue Type="string" Value="&quot;[INSTALLFOLDER]NoteMode.exe&quot;" KeyPath="yes" />
+        </RegistryKey>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+</Wix>

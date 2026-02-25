@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="src/Flit/Assets/flit-logo.svg" alt="Flit Logo" width="128" height="128">
+  <img src="src/NoteMode/Assets/notemode-logo.svg" alt="NoteMode Logo" width="128" height="128">
 </p>
 
-<h1 align="center">Flit</h1>
+<h1 align="center">NoteMode</h1>
 
 <p align="center">
   A lightweight, fast desktop text editor built with C# and Avalonia UI.
@@ -22,7 +22,7 @@
 
 ## Screenshot
 
-![Flit Screenshot](docs/screen1.png)
+![NoteMode Screenshot](docs/screen1.png)
 
 ## Requirements
 
@@ -39,7 +39,7 @@ dotnet build
 
 ```bash
 cd src
-dotnet run --project Flit
+dotnet run --project NoteMode
 ```
 
 Or for a release build:
@@ -47,7 +47,7 @@ Or for a release build:
 ```bash
 cd src
 dotnet build -c Release
-dotnet run --project Flit -c Release
+dotnet run --project NoteMode -c Release
 ```
 
 ## Keyboard Shortcuts
@@ -71,7 +71,7 @@ dotnet run --project Flit -c Release
 Built with MVVM pattern:
 
 ```
-src/Flit/
+src/NoteMode/
 ├── Models/          # Data structures (AppState, TabState)
 ├── Services/        # Business logic (state, cache, syntax)
 ├── ViewModels/      # Presentation logic with bindings
@@ -81,8 +81,8 @@ src/Flit/
 
 ## Data Storage
 
-- App state: `~/.flit/state.json`
-- Tab cache: `~/.flit/cache/`
+- App state: `~/.notemode/state.json`
+- Tab cache: `~/.notemode/cache/`
 
 ## Tech Stack
 

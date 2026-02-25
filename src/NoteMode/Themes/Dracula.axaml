@@ -1,0 +1,309 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ae="using:AvaloniaEdit"
+        xmlns:avaloniaedit="https://github.com/avaloniaui/avaloniaedit"
+        x:Class="NoteMode.Themes.DraculaTheme">
+
+    <Styles.Resources>
+        <SolidColorBrush x:Key="TitleBarBackground" Color="#21222c"/>
+        <SolidColorBrush x:Key="TitleBarForeground" Color="#f8f8f2"/>
+        <SolidColorBrush x:Key="StatusBarText" Color="#6272a4"/>
+        <SolidColorBrush x:Key="StatusBarSeparator" Color="#44475a"/>
+        <SolidColorBrush x:Key="StatusBarInputBackground" Color="#1a1b24"/>
+        <SolidColorBrush x:Key="StatusBarInputBorder" Color="#44475a"/>
+        <SolidColorBrush x:Key="DragHandleColor" Color="#6272a4"/>
+        <SolidColorBrush x:Key="DragGhostBackground" Color="#282a36"/>
+        <SolidColorBrush x:Key="DragGhostBorder" Color="#bd93f9"/>
+        <SolidColorBrush x:Key="DragGhostForeground" Color="#f8f8f2"/>
+        <SolidColorBrush x:Key="WindowControlHover" Color="#44475a"/>
+        <!-- Dialog resources -->
+        <SolidColorBrush x:Key="AccentColor" Color="#bd93f9"/>
+        <SolidColorBrush x:Key="SecondaryText" Color="#6272a4"/>
+        <SolidColorBrush x:Key="WarningColor" Color="#ffb86c"/>
+        <!-- Tab strip resources -->
+        <SolidColorBrush x:Key="TabStripBackground" Color="#1a1b24"/>
+        <SolidColorBrush x:Key="TabItemBackground" Color="#1a1b24"/>
+        <SolidColorBrush x:Key="TabItemHover" Color="#44475a"/>
+        <SolidColorBrush x:Key="TabItemSelected" Color="#282a36"/>
+        <SolidColorBrush x:Key="TabItemSelectedText" Color="#f8f8f2"/>
+        <SolidColorBrush x:Key="TabItemText" Color="#808080"/>
+        <SolidColorBrush x:Key="NewTabButtonBackground" Color="#2a2c38"/>
+        <SolidColorBrush x:Key="NewTabButtonHover" Color="#44475a"/>
+        <!-- Search panel resources -->
+        <SolidColorBrush x:Key="SearchPanelBackground" Color="#21222c"/>
+        <SolidColorBrush x:Key="SearchPanelBorder" Color="#44475a"/>
+        <SolidColorBrush x:Key="SearchPanelHeaderBackground" Color="#282a36"/>
+        <SolidColorBrush x:Key="SearchPanelHeaderText" Color="#f8f8f2"/>
+        <SolidColorBrush x:Key="SearchMatchHighlight" Color="#f1fa8c"/>
+        <SolidColorBrush x:Key="SearchModeButtonActive" Color="#44475a"/>
+        <SolidColorBrush x:Key="SearchModeButtonInactive" Color="#282a36"/>
+        <!-- Note tab border -->
+        <SolidColorBrush x:Key="NoteTabBorderColor" Color="#f1fa8c"/>
+        <!-- Notes panel resources -->
+        <SolidColorBrush x:Key="NotesPanelBackground" Color="#21222c"/>
+        <SolidColorBrush x:Key="NotesPanelBorder" Color="#44475a"/>
+        <SolidColorBrush x:Key="NotesPanelHeaderBackground" Color="#282a36"/>
+        <SolidColorBrush x:Key="NotesPanelHeaderText" Color="#f8f8f2"/>
+        <SolidColorBrush x:Key="NotesFolderIcon" Color="#6272a4"/>
+        <SolidColorBrush x:Key="NotesNoteIcon" Color="#6272a4"/>
+        <SolidColorBrush x:Key="NotesDropTargetHighlight" Color="#3abd93f9"/>
+        <!-- Icon colors -->
+        <SolidColorBrush x:Key="MenuIconColor" Color="#6272a4"/>
+        <SolidColorBrush x:Key="TabCloseIconColor" Color="#f8f8f2"/>
+    </Styles.Resources>
+
+    <Style Selector="Window">
+        <Setter Property="Background" Value="#282a36"/>
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <Style Selector="TabControl">
+        <Setter Property="Background" Value="#1a1b24"/>
+    </Style>
+
+    <Style Selector="TabItem">
+        <Setter Property="Background" Value="#1a1b24"/>
+        <Setter Property="Foreground" Value="#808080"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="MinHeight" Value="28"/>
+    </Style>
+
+    <Style Selector="TabItem:selected">
+        <Setter Property="Background" Value="#282a36"/>
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
+        <Setter Property="VerticalAlignment" Value="Bottom"/>
+        <Setter Property="Height" Value="2"/>
+        <Setter Property="Margin" Value="0"/>
+    </Style>
+
+    <Style Selector="TabItem:pointerover">
+        <Setter Property="Background" Value="#44475a"/>
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <Style Selector="ae|TextEditor">
+        <Setter Property="Background" Value="#1E1F29"/>
+        <Setter Property="Foreground" Value="#e0e0e0"/>
+        <Setter Property="LineNumbersForeground" Value="#6272a4"/>
+        <Setter Property="FontFamily" Value="Consolas"/>
+        <Setter Property="ShowLineNumbers" Value="True"/>
+        <Setter Property="Padding" Value="8,10,10,10"/>
+        <Setter Property="SearchResultsBrush" Value="#5A4020"/>
+    </Style>
+
+    <Style Selector="Button">
+        <Setter Property="Background" Value="#44475a"/>
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="10,5"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="FontSize" Value="12"/>
+    </Style>
+
+    <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#44475a"/>
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#5a5e73"/>
+    </Style>
+
+    <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#6272a4"/>
+    </Style>
+
+    <!-- Primary button style (accent color) -->
+    <Style Selector="Button.primary">
+        <Setter Property="Background" Value="#bd93f9"/>
+        <Setter Property="Foreground" Value="#282a36"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+
+    <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#bd93f9"/>
+    </Style>
+
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#caa4fa"/>
+    </Style>
+
+    <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#a87ef5"/>
+    </Style>
+
+    <Style Selector="Menu">
+        <Setter Property="Background" Value="#21222c"/>
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <Style Selector="MenuItem">
+        <Setter Property="Background" Value="#21222c"/>
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <Style Selector="MenuItem:selected /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="#44475a"/>
+    </Style>
+
+    <Style Selector="ContextMenu">
+        <Setter Property="Background" Value="#21222c"/>
+        <Setter Property="BorderBrush" Value="#44475a"/>
+    </Style>
+
+    <Style Selector="ScrollBar">
+        <Setter Property="Background" Value="#21222c"/>
+    </Style>
+
+    <Style Selector="ScrollBar /template/ Thumb">
+        <Setter Property="Background" Value="#44475a"/>
+    </Style>
+
+    <!-- TextBox styles -->
+    <Style Selector="TextBox">
+        <Setter Property="Background" Value="#44475a"/>
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+        <Setter Property="BorderBrush" Value="#6272a4"/>
+        <Setter Property="CaretBrush" Value="#f8f8f2"/>
+        <Setter Property="SelectionBrush" Value="#6272a4"/>
+    </Style>
+
+    <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="#bd93f9"/>
+    </Style>
+
+    <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="#bd93f9"/>
+    </Style>
+
+    <!-- CheckBox styles -->
+    <Style Selector="CheckBox">
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <!-- TextBlock styles -->
+    <Style Selector="TextBlock">
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <!-- ListBox styles -->
+    <Style Selector="ListBox">
+        <Setter Property="Background" Value="#282a36"/>
+        <Setter Property="BorderBrush" Value="#44475a"/>
+    </Style>
+
+    <Style Selector="ListBoxItem">
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="#44475a"/>
+    </Style>
+
+    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#383a46"/>
+    </Style>
+
+    <!-- Separator styles -->
+    <Style Selector="Separator">
+        <Setter Property="Background" Value="#44475a"/>
+        <Setter Property="Height" Value="1"/>
+        <Setter Property="Margin" Value="0,4"/>
+    </Style>
+
+    <!-- Menu separator specific -->
+    <Style Selector="MenuItem > Separator">
+        <Setter Property="Background" Value="#44475a"/>
+    </Style>
+
+    <Style Selector="ContextMenu Separator">
+        <Setter Property="Background" Value="#44475a"/>
+    </Style>
+
+    <!-- Label styles -->
+    <Style Selector="Label">
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <!-- ContentPresenter text color -->
+    <Style Selector="ContentPresenter">
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <!-- TabItem text -->
+    <Style Selector="TabItem TextBlock">
+        <Setter Property="Foreground" Value="#808080"/>
+    </Style>
+
+    <Style Selector="TabItem:selected TextBlock">
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <Style Selector="TabItem:pointerover TextBlock">
+        <Setter Property="Foreground" Value="#f8f8f2"/>
+    </Style>
+
+    <!-- Tab Strip ListBox styles -->
+    <Style Selector="ListBox#TabStrip">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="ListBox#TabStrip ListBoxItem">
+        <Setter Property="Background" Value="{DynamicResource TabItemBackground}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TabItemText}"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Margin" Value="0"/>
+        <Setter Property="MinHeight" Value="30"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="ListBox#TabStrip ListBoxItem /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource TabItemBackground}"/>
+    </Style>
+
+    <Style Selector="ListBox#TabStrip ListBoxItem:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource TabItemHover}"/>
+    </Style>
+
+    <Style Selector="ListBox#TabStrip ListBoxItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource TabItemSelected}"/>
+    </Style>
+
+
+    <Style Selector="ListBox#TabStrip ListBoxItem:selected TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource TabItemSelectedText}"/>
+    </Style>
+
+    <Style Selector="ListBox#TabStrip ListBoxItem TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource TabItemText}"/>
+    </Style>
+
+    <Style Selector="ListBox#TabStrip ListBoxItem:pointerover TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource TabItemSelectedText}"/>
+    </Style>
+
+    <!-- Ghost Tab Button styles -->
+    <Style Selector="Button.ghosttab">
+        <Setter Property="Background" Value="{DynamicResource TabItemBackground}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TabItemText}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="Margin" Value="0"/>
+    </Style>
+
+    <Style Selector="Button.ghosttab /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource TabItemBackground}"/>
+        <Setter Property="CornerRadius" Value="0"/>
+    </Style>
+
+    <Style Selector="Button.ghosttab:pointerover">
+        <Setter Property="Opacity" Value="0.7"/>
+    </Style>
+
+    <Style Selector="Button.ghosttab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource TabItemHover}"/>
+    </Style>
+</Styles>

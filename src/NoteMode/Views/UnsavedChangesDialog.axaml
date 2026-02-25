@@ -1,0 +1,22 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="NoteMode.Views.UnsavedChangesDialog"
+        Title="Unsaved Changes"
+        Width="400"
+        Height="150"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        ShowInTaskbar="False">
+
+    <DockPanel Margin="16">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Content="Don't Save" Click="DontSave_Click"/>
+            <Button Content="Cancel" Click="Cancel_Click"/>
+            <Button Content="Save" Click="Save_Click" Classes="primary" IsDefault="True"/>
+        </StackPanel>
+        <TextBlock x:Name="MessageText"
+                   Text="Do you want to save changes?"
+                   TextWrapping="Wrap"
+                   VerticalAlignment="Center"/>
+    </DockPanel>
+</Window>

@@ -1,0 +1,14 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ae="using:AvaloniaEdit"
+             xmlns:vm="using:NoteMode.ViewModels"
+             x:Class="NoteMode.Views.EditorView"
+             x:DataType="vm:TabViewModel">
+
+    <ae:TextEditor x:Name="Editor"
+                   SyntaxHighlighting="{Binding SyntaxHighlighting}"
+                   HorizontalScrollBarVisibility="Auto"
+                   VerticalScrollBarVisibility="Auto"
+                   WordWrap="False"
+                   Margin="8,0,0,0" />
+</UserControl>
