@@ -1,0 +1,28 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="NoteMode.Views.FileChangedDialog"
+        Title="File Changed"
+        Width="450"
+        Height="180"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        ShowInTaskbar="False">
+
+    <DockPanel Margin="16">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button x:Name="KeepChangesButton" Content="Keep My Changes" Click="KeepChanges_Click" IsVisible="False"/>
+            <Button Content="Ignore" Click="Ignore_Click"/>
+            <Button Content="Reload" Click="Reload_Click" Classes="primary" IsDefault="True"/>
+        </StackPanel>
+        <StackPanel VerticalAlignment="Center" Spacing="8">
+            <TextBlock x:Name="MessageText"
+                       Text="The file has been modified outside of NoteMode."
+                       TextWrapping="Wrap"/>
+            <TextBlock x:Name="ConflictText"
+                       Text="You have unsaved changes."
+                       Foreground="{DynamicResource WarningColor}"
+                       TextWrapping="Wrap"
+                       IsVisible="False"/>
+        </StackPanel>
+    </DockPanel>
+</Window>

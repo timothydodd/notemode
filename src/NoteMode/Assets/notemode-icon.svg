@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Rounded square background -->
+  <rect x="4" y="4" width="120" height="120" rx="20" ry="20" fill="#282a36"/>
+
+  <!-- Border -->
+  <rect x="4" y="4" width="120" height="120" rx="20" ry="20"
+        fill="none" stroke="#bd93f9" stroke-width="4"/>
+
+  <!-- "NM" text -->
+  <text x="64" y="88"
+        font-family="Arial, Helvetica, sans-serif"
+        font-weight="bold"
+        font-size="64"
+        fill="#bd93f9"
+        text-anchor="middle">NM</text>
+</svg>
