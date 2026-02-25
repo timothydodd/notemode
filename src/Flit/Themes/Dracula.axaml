@@ -44,9 +44,12 @@
         <SolidColorBrush x:Key="NotesPanelBorder" Color="#44475a"/>
         <SolidColorBrush x:Key="NotesPanelHeaderBackground" Color="#282a36"/>
         <SolidColorBrush x:Key="NotesPanelHeaderText" Color="#f8f8f2"/>
-        <SolidColorBrush x:Key="NotesFolderIcon" Color="#f1fa8c"/>
-        <SolidColorBrush x:Key="NotesNoteIcon" Color="#8be9fd"/>
+        <SolidColorBrush x:Key="NotesFolderIcon" Color="#6272a4"/>
+        <SolidColorBrush x:Key="NotesNoteIcon" Color="#6272a4"/>
         <SolidColorBrush x:Key="NotesDropTargetHighlight" Color="#3abd93f9"/>
+        <!-- Icon colors -->
+        <SolidColorBrush x:Key="MenuIconColor" Color="#6272a4"/>
+        <SolidColorBrush x:Key="TabCloseIconColor" Color="#f8f8f2"/>
     </Styles.Resources>
 
     <Style Selector="Window">
@@ -253,7 +256,7 @@
         <Setter Property="Foreground" Value="{DynamicResource TabItemText}"/>
         <Setter Property="Padding" Value="0"/>
         <Setter Property="Margin" Value="0"/>
-        <Setter Property="MinHeight" Value="28"/>
+        <Setter Property="MinHeight" Value="30"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
 
@@ -282,23 +285,25 @@
         <Setter Property="Foreground" Value="{DynamicResource TabItemSelectedText}"/>
     </Style>
 
-    <!-- New Tab Button styles -->
-    <Style Selector="Button.newtab">
-        <Setter Property="Background" Value="{DynamicResource NewTabButtonBackground}"/>
+    <!-- Ghost Tab Button styles -->
+    <Style Selector="Button.ghosttab">
+        <Setter Property="Background" Value="{DynamicResource TabItemBackground}"/>
         <Setter Property="Foreground" Value="{DynamicResource TabItemText}"/>
-        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="Margin" Value="0"/>
     </Style>
 
-    <Style Selector="Button.newtab /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource NewTabButtonBackground}"/>
-        <Setter Property="CornerRadius" Value="4"/>
+    <Style Selector="Button.ghosttab /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource TabItemBackground}"/>
+        <Setter Property="CornerRadius" Value="0"/>
     </Style>
 
-    <Style Selector="Button.newtab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource NewTabButtonHover}"/>
+    <Style Selector="Button.ghosttab:pointerover">
+        <Setter Property="Opacity" Value="0.7"/>
     </Style>
 
-    <Style Selector="Button.newtab:pointerover">
-        <Setter Property="Foreground" Value="{DynamicResource TabItemSelectedText}"/>
+    <Style Selector="Button.ghosttab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource TabItemHover}"/>
     </Style>
 </Styles>

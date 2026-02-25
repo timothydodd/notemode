@@ -68,6 +68,10 @@ Uses Dracula color scheme defined in `Themes/Dracula.axaml`:
 - Background: `#282a36`, Title bar: `#21222c`, Foreground: `#f8f8f2`
 - Syntax colors set in `SyntaxService.cs` (comments gray, strings yellow, keywords pink, etc.)
 
+## Icons
+
+Icons use [Lucide](https://github.com/lucide-icons/lucide) designs (ISC license), rendered as native Avalonia `Path` elements with `Stroke` bindings for theme support. Icon path data is embedded inline in AXAML files using the Lucide 24x24 grid coordinate system with `Stretch="Uniform"` to scale to the desired size.
+
 ## Keyboard Shortcuts
 
 Defined in `MainWindow.axaml`:
