@@ -26,6 +26,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private double _searchPanelWidth = 350;
     private bool _isNotesPanelOpen;
     private double _notesPanelWidth = 300;
+    private bool _isExplorerPanelOpen;
+    private double _explorerPanelWidth = 300;
     private StatusBarViewModel _statusBar = new();
 
     // Window position/size state
@@ -62,6 +64,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         ToggleLightThemeCommand = new RelayCommand(_ => UseLightTheme = !UseLightTheme);
         ToggleSearchPanelCommand = new RelayCommand(_ => IsSearchPanelOpen = !IsSearchPanelOpen);
         ToggleNotesPanelCommand = new RelayCommand(_ => IsNotesPanelOpen = !IsNotesPanelOpen);
+        ToggleExplorerPanelCommand = new RelayCommand(_ => IsExplorerPanelOpen = !IsExplorerPanelOpen);
         SaveAsNoteCommand = new RelayCommand(_ => SaveAsNote());
 
         LoadState();
@@ -208,6 +211,33 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
+    public bool IsExplorerPanelOpen
+    {
+        get => _isExplorerPanelOpen;
+        set
+        {
+            if (_isExplorerPanelOpen != value)
+            {
+                _isExplorerPanelOpen = value;
+                OnPropertyChanged();
+                SaveState();
+            }
+        }
+    }
+
+    public double ExplorerPanelWidth
+    {
+        get => _explorerPanelWidth;
+        set
+        {
+            if (Math.Abs(_explorerPanelWidth - value) > 0.5)
+            {
+                _explorerPanelWidth = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     public double NotesPanelWidth
     {
         get => _notesPanelWidth;
@@ -236,6 +266,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public ICommand ToggleLightThemeCommand { get; }
     public ICommand ToggleSearchPanelCommand { get; }
     public ICommand ToggleNotesPanelCommand { get; }
+    public ICommand ToggleExplorerPanelCommand { get; }
     public ICommand SaveAsNoteCommand { get; }
 
     public StatusBarViewModel StatusBar => _statusBar;
@@ -611,7 +642,9 @@ public class MainWindowViewModel : INotifyPropertyChanged
             SearchPanelOpen = _isSearchPanelOpen,
             SearchPanelWidth = _searchPanelWidth,
             NotesPanelOpen = _isNotesPanelOpen,
-            NotesPanelWidth = _notesPanelWidth
+            NotesPanelWidth = _notesPanelWidth,
+            ExplorerPanelOpen = _isExplorerPanelOpen,
+            ExplorerPanelWidth = _explorerPanelWidth
         };
 
         _stateService.SaveState(state);
@@ -634,6 +667,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
         _searchPanelWidth = state.SearchPanelWidth > 0 ? state.SearchPanelWidth : 350;
         _isNotesPanelOpen = state.NotesPanelOpen;
         _notesPanelWidth = state.NotesPanelWidth > 0 ? state.NotesPanelWidth : 300;
+        _isExplorerPanelOpen = state.ExplorerPanelOpen;
+        _explorerPanelWidth = state.ExplorerPanelWidth > 0 ? state.ExplorerPanelWidth : 300;
 
         foreach (var tabState in state.Tabs.OrderBy(t => t.Order))
         {

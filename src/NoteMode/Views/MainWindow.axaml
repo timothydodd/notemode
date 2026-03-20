@@ -29,6 +29,7 @@
         <KeyBinding Gesture="Ctrl+Shift+F" Command="{Binding #MainWin.ToggleSearchPanelCommand}" />
         <KeyBinding Gesture="Ctrl+H" Command="{Binding #MainWin.ReplaceCommand}" />
         <KeyBinding Gesture="Ctrl+Shift+N" Command="{Binding ToggleNotesPanelCommand}" />
+        <KeyBinding Gesture="Ctrl+E" Command="{Binding ToggleExplorerPanelCommand}" />
     </Window.KeyBindings>
 
     <Panel>
@@ -154,6 +155,15 @@
                                 </MenuItem.Icon>
                             </MenuItem>
                             <Separator />
+                            <MenuItem Header="_Explorer Panel"
+                                      Command="{Binding ToggleExplorerPanelCommand}"
+                                      InputGesture="Ctrl+E">
+                                <MenuItem.Icon>
+                                    <CheckBox IsChecked="{Binding IsExplorerPanelOpen}"
+                                              BorderThickness="0"
+                                              IsHitTestVisible="False"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
                             <MenuItem Header="_Notes Panel"
                                       Command="{Binding ToggleNotesPanelCommand}"
                                       InputGesture="Ctrl+Shift+N">
@@ -170,6 +180,14 @@
                                     <CheckBox IsChecked="{Binding UseLightTheme}"
                                               BorderThickness="0"
                                               IsHitTestVisible="False"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                        </MenuItem>
+                        <MenuItem Header="_Tools">
+                            <MenuItem Header="_Settings..." Click="Settings_Click">
+                                <MenuItem.Icon>
+                                    <Path Data="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"
+                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
                                 </MenuItem.Icon>
                             </MenuItem>
                         </MenuItem>
@@ -424,8 +442,28 @@
                         <ColumnDefinition Width="0" MinWidth="0" MaxWidth="0"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- Search Panel -->
-                    <views:SearchPanel x:Name="SearchPanelControl" Grid.Column="0"/>
+                    <!-- Left Panel Column: Search + Explorer stacked -->
+                    <Grid x:Name="LeftPanelGrid" Grid.Column="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="0"/>
+                            <RowDefinition Height="0"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Search Panel -->
+                        <views:SearchPanel x:Name="SearchPanelControl" Grid.Row="0"/>
+
+                        <!-- Splitter between Search and Explorer (only when both visible) -->
+                        <GridSplitter x:Name="LeftPanelSplitter"
+                                      Grid.Row="1"
+                                      Height="5"
+                                      Background="Transparent"
+                                      ResizeDirection="Rows"
+                                      IsVisible="False"/>
+
+                        <!-- Explorer Panel -->
+                        <views:ExplorerPanel x:Name="ExplorerPanelControl" Grid.Row="2"/>
+                    </Grid>
 
                     <!-- Search Splitter -->
                     <GridSplitter x:Name="SearchSplitter"
