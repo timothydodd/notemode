@@ -1,0 +1,101 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="NoteMode.Views.SettingsDialog"
+        Title="Settings"
+        Width="500" Height="550"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="32">
+
+    <Panel>
+        <DockPanel>
+            <!-- Title Bar -->
+            <Border DockPanel.Dock="Top"
+                    Background="{DynamicResource TitleBarBackground}"
+                    Height="32"
+                    PointerPressed="TitleBar_PointerPressed">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="12,0" VerticalAlignment="Center">
+                        <Path Data="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"
+                              Stroke="{DynamicResource TitleBarForeground}"
+                              StrokeThickness="1.5"
+                              StrokeLineCap="Round"
+                              StrokeJoin="Round"
+                              Stretch="Uniform"
+                              Width="14" Height="14"
+                              Opacity="0.7"/>
+                        <TextBlock Text="Settings"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TitleBarForeground}"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            Click="Close_Click"
+                            Width="46" Height="32"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            VerticalContentAlignment="Center"
+                            HorizontalContentAlignment="Center"
+                            Classes="close">
+                        <Path Data="M18 6 6 18M6 6l12 12"
+                              Stroke="{DynamicResource TitleBarForeground}"
+                              StrokeThickness="1.5"
+                              StrokeLineCap="Round"
+                              Stretch="Uniform"
+                              Width="14" Height="14"/>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- Bottom buttons -->
+            <Border DockPanel.Dock="Bottom" Padding="16,10"
+                    BorderBrush="{DynamicResource SearchPanelBorder}"
+                    BorderThickness="0,1,0,0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                    <Button Content="Apply" Click="Apply_Click" Classes="primary" Padding="16,6" x:Name="ApplyButton"/>
+                    <Button Content="Close" Click="Close_Click" Padding="16,6"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Main content -->
+            <ScrollViewer Padding="16,12">
+                <StackPanel Spacing="16">
+                    <!-- File Associations Section -->
+                    <TextBlock Text="File Associations"
+                               FontSize="14"
+                               FontWeight="SemiBold"/>
+                    <TextBlock Text="Associate file types with NoteMode (Windows only, per-user)"
+                               FontSize="11"
+                               Foreground="{DynamicResource SecondaryText}"
+                               TextWrapping="Wrap"/>
+
+                    <!-- Not available on non-Windows -->
+                    <TextBlock x:Name="NotAvailableText"
+                               Text="File associations are only available on Windows."
+                               FontSize="11"
+                               FontStyle="Italic"
+                               Foreground="{DynamicResource SecondaryText}"
+                               IsVisible="False"/>
+
+                    <!-- Select All / Deselect All -->
+                    <StackPanel x:Name="AssociationControls" Orientation="Horizontal" Spacing="8">
+                        <Button Content="Select All" Click="SelectAll_Click" FontSize="11" Padding="8,3"/>
+                        <Button Content="Deselect All" Click="DeselectAll_Click" FontSize="11" Padding="8,3"/>
+                    </StackPanel>
+
+                    <!-- Extension groups will be added here programmatically -->
+                    <StackPanel x:Name="ExtensionGroups" Spacing="12"/>
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+    </Panel>
+
+    <Window.Styles>
+        <Style Selector="Button.close:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#ff5555"/>
+        </Style>
+    </Window.Styles>
+</Window>

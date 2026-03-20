@@ -1,0 +1,124 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NoteMode.ViewModels"
+             x:Class="NoteMode.Views.ExplorerPanel"
+             x:DataType="vm:ExplorerPanelViewModel">
+
+    <Border Background="{DynamicResource SearchPanelBackground}"
+            BorderBrush="{DynamicResource SearchPanelBorder}"
+            BorderThickness="0,1,1,0">
+        <DockPanel>
+            <!-- Header bar -->
+            <Border DockPanel.Dock="Top"
+                    Background="{DynamicResource SearchPanelHeaderBackground}"
+                    BorderBrush="{DynamicResource SearchPanelBorder}"
+                    BorderThickness="0,0,0,1"
+                    Padding="10,8">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <Path Data="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"
+                              Stroke="{DynamicResource SearchPanelHeaderText}"
+                              StrokeThickness="1.5"
+                              StrokeLineCap="Round"
+                              StrokeJoin="Round"
+                              Stretch="Uniform"
+                              Width="13" Height="13"
+                              Opacity="0.7"/>
+                        <TextBlock Text="EXPLORER"
+                                   FontSize="11"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource SearchPanelHeaderText}"
+                                   VerticalAlignment="Center"
+                                   Opacity="0.7"/>
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            Click="CloseButton_Click"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Padding="0"
+                            Width="20" Height="20"
+                            VerticalContentAlignment="Center"
+                            HorizontalContentAlignment="Center">
+                        <Path Data="M18 6 6 18M6 6l12 12"
+                              Stroke="{DynamicResource SearchPanelHeaderText}"
+                              StrokeThickness="1.5"
+                              StrokeLineCap="Round"
+                              Stretch="Uniform"
+                              Width="12" Height="12"/>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- Current folder name -->
+            <Border DockPanel.Dock="Top" Padding="10,6" IsVisible="{Binding RootDisplayName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding RootDisplayName}"
+                           FontSize="11"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource SecondaryText}"
+                           TextTrimming="CharacterEllipsis"/>
+            </Border>
+
+            <!-- No folder message -->
+            <TextBlock DockPanel.Dock="Top"
+                       Text="Open a file to explore its directory"
+                       FontSize="11"
+                       FontStyle="Italic"
+                       Foreground="{DynamicResource SecondaryText}"
+                       Margin="10,8">
+                <TextBlock.IsVisible>
+                    <Binding Path="RootDisplayName" Converter="{x:Static StringConverters.IsNullOrEmpty}"/>
+                </TextBlock.IsVisible>
+            </TextBlock>
+
+            <!-- File Tree -->
+            <TreeView ItemsSource="{Binding RootItems}"
+                      Margin="0,4,0,0"
+                      Background="Transparent"
+                      BorderThickness="0">
+                <TreeView.ItemTemplate>
+                    <TreeDataTemplate DataType="vm:FileTreeItemViewModel"
+                                      ItemsSource="{Binding Children}">
+                        <Border Padding="2,2"
+                                Background="Transparent"
+                                Tag="{Binding}"
+                                CornerRadius="3"
+                                DoubleTapped="TreeItem_DoubleTapped">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <!-- Folder icon -->
+                                <Path Data="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"
+                                      Stroke="{DynamicResource NotesFolderIcon}"
+                                      StrokeThickness="1.5"
+                                      StrokeLineCap="Round"
+                                      StrokeJoin="Round"
+                                      Stretch="Uniform"
+                                      Width="14" Height="14"
+                                      VerticalAlignment="Center"
+                                      IsVisible="{Binding IsDirectory}"/>
+                                <!-- File icon -->
+                                <Path Data="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2zM14 2v5a1 1 0 0 0 1 1h5"
+                                      Stroke="{DynamicResource NotesNoteIcon}"
+                                      StrokeThickness="1.5"
+                                      StrokeLineCap="Round"
+                                      StrokeJoin="Round"
+                                      Stretch="Uniform"
+                                      Width="14" Height="14"
+                                      VerticalAlignment="Center"
+                                      IsVisible="{Binding !IsDirectory}"/>
+                                <TextBlock Text="{Binding Name}"
+                                           FontSize="12"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </TreeDataTemplate>
+                </TreeView.ItemTemplate>
+
+                <TreeView.Styles>
+                    <Style Selector="TreeViewItem" x:DataType="vm:FileTreeItemViewModel">
+                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                        <Setter Property="Padding" Value="0"/>
+                    </Style>
+                </TreeView.Styles>
+            </TreeView>
+        </DockPanel>
+    </Border>
+</UserControl>

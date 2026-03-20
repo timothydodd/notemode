@@ -33,6 +33,12 @@ public partial class MainWindow : Window
     private ColumnDefinition? _notesPanelColumn;
     private ColumnDefinition? _notesSplitterColumn;
     private GridSplitter? _notesSplitter;
+    private ExplorerPanel? _explorerPanel;
+    private ExplorerPanelViewModel? _explorerPanelViewModel;
+    private RowDefinition? _searchPanelRow;
+    private RowDefinition? _explorerSplitterRow;
+    private RowDefinition? _explorerPanelRow;
+    private GridSplitter? _leftPanelSplitter;
 
     public MainWindow()
     {
@@ -77,6 +83,11 @@ public partial class MainWindow : Window
             ToggleSearchPanel();
             e.Handled = true;
         }
+        else if (e.Key == Key.E && e.KeyModifiers == KeyModifiers.Control)
+        {
+            ToggleExplorerPanel();
+            e.Handled = true;
+        }
         else if (e.Key == Key.N && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift))
         {
             ToggleNotesPanel();
@@ -88,6 +99,14 @@ public partial class MainWindow : Window
             if (_searchPanel.IsKeyboardFocusWithin)
             {
                 ViewModel.IsSearchPanelOpen = false;
+                e.Handled = true;
+            }
+        }
+        else if (e.Key == Key.Escape && ViewModel?.IsExplorerPanelOpen == true && _explorerPanel != null)
+        {
+            if (_explorerPanel.IsKeyboardFocusWithin)
+            {
+                ViewModel.IsExplorerPanelOpen = false;
                 e.Handled = true;
             }
         }
@@ -126,6 +145,7 @@ public partial class MainWindow : Window
             ViewModel.ExternalChangeDetected += OnExternalChangeDetected;
             RestoreWindowPosition();
             InitializeSearchPanel();
+            InitializeExplorerPanel();
             InitializeNotesPanel();
         }
     }
@@ -938,8 +958,9 @@ public partial class MainWindow : Window
 
         _searchPanel = this.FindControl<SearchPanel>("SearchPanelControl");
         _searchSplitter = this.FindControl<GridSplitter>("SearchSplitter");
-        // ColumnDefinitions aren't Controls, so find them via the parent Grid
-        var contentGrid = _searchPanel?.Parent as Grid;
+        // ColumnDefinitions are on the outer content Grid (parent of LeftPanelGrid)
+        var leftPanelGrid = this.FindControl<Grid>("LeftPanelGrid");
+        var contentGrid = leftPanelGrid?.Parent as Grid;
         if (contentGrid?.ColumnDefinitions.Count >= 2)
         {
             _searchPanelColumn = contentGrid.ColumnDefinitions[0];
@@ -990,16 +1011,7 @@ public partial class MainWindow : Window
 
     private void ShowSearchPanel()
     {
-        if (_searchPanelColumn == null)
-            return;
-        var width = ViewModel?.SearchPanelWidth ?? 350;
-        _searchPanelColumn.Width = new GridLength(width);
-        _searchPanelColumn.MinWidth = 250;
-        _searchPanelColumn.MaxWidth = 600;
-        if (_searchSplitterColumn != null)
-            _searchSplitterColumn.Width = GridLength.Auto;
-        if (_searchSplitter != null)
-            _searchSplitter.IsVisible = true;
+        UpdateLeftPanelLayout();
     }
 
     private void HideSearchPanel()
@@ -1009,13 +1021,7 @@ public partial class MainWindow : Window
         // Save current width before hiding
         if (ViewModel != null)
             ViewModel.SearchPanelWidth = _searchPanelColumn.Width.Value;
-        _searchPanelColumn.Width = new GridLength(0);
-        _searchPanelColumn.MinWidth = 0;
-        _searchPanelColumn.MaxWidth = 0;
-        if (_searchSplitterColumn != null)
-            _searchSplitterColumn.Width = new GridLength(0);
-        if (_searchSplitter != null)
-            _searchSplitter.IsVisible = false;
+        UpdateLeftPanelLayout();
     }
 
     private async System.Threading.Tasks.Task BrowseSearchFolderAsync()
@@ -1051,6 +1057,160 @@ public partial class MainWindow : Window
             // File mode: open file (or switch to existing tab) and navigate
             var tab = ViewModel.OpenFile(item.FilePath);
             GoToSearchResult(tab, item.StartOffset, item.Length, item.LineNumber);
+        }
+    }
+
+    // --- Explorer Panel ---
+
+    private void InitializeExplorerPanel()
+    {
+        if (ViewModel == null)
+            return;
+
+        _explorerPanel = this.FindControl<ExplorerPanel>("ExplorerPanelControl");
+        _leftPanelSplitter = this.FindControl<GridSplitter>("LeftPanelSplitter");
+
+        // Find row definitions from the left panel grid
+        var leftPanelGrid = this.FindControl<Grid>("LeftPanelGrid");
+        if (leftPanelGrid != null)
+        {
+            _searchPanelRow = leftPanelGrid.RowDefinitions.Count > 0 ? leftPanelGrid.RowDefinitions[0] : null;
+            _explorerSplitterRow = leftPanelGrid.RowDefinitions.Count > 1 ? leftPanelGrid.RowDefinitions[1] : null;
+            _explorerPanelRow = leftPanelGrid.RowDefinitions.Count > 2 ? leftPanelGrid.RowDefinitions[2] : null;
+        }
+
+        if (_explorerPanel == null)
+            return;
+
+        _explorerPanelViewModel = new ExplorerPanelViewModel(ViewModel);
+        _explorerPanel.DataContext = _explorerPanelViewModel;
+
+        // Set initial state
+        if (ViewModel.IsExplorerPanelOpen)
+        {
+            ShowExplorerPanel();
+        }
+        else
+        {
+            HideExplorerPanel();
+        }
+
+        // Update explorer root when selected tab changes
+        ViewModel.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(MainWindowViewModel.IsExplorerPanelOpen))
+            {
+                if (ViewModel.IsExplorerPanelOpen)
+                    ShowExplorerPanel();
+                else
+                    HideExplorerPanel();
+            }
+            else if (e.PropertyName == nameof(MainWindowViewModel.SelectedTab))
+            {
+                if (ViewModel.IsExplorerPanelOpen)
+                {
+                    _explorerPanelViewModel?.UpdateRoot(ViewModel.SelectedTab?.FilePath);
+                }
+            }
+        };
+
+        _explorerPanel.CloseRequested += (s, e) =>
+        {
+            if (ViewModel != null)
+                ViewModel.IsExplorerPanelOpen = false;
+        };
+
+        _explorerPanel.FileOpened += (s, path) =>
+        {
+            if (!string.IsNullOrEmpty(path))
+                ViewModel?.OpenFile(path);
+        };
+    }
+
+    private void ShowExplorerPanel()
+    {
+        UpdateLeftPanelLayout();
+
+        // Update root from current tab
+        if (ViewModel?.SelectedTab != null)
+        {
+            _explorerPanelViewModel?.UpdateRoot(ViewModel.SelectedTab.FilePath);
+        }
+    }
+
+    private void HideExplorerPanel()
+    {
+        UpdateLeftPanelLayout();
+    }
+
+    private void ToggleExplorerPanel()
+    {
+        if (ViewModel == null)
+            return;
+        ViewModel.IsExplorerPanelOpen = !ViewModel.IsExplorerPanelOpen;
+    }
+
+    private void UpdateLeftPanelLayout()
+    {
+        bool searchOpen = ViewModel?.IsSearchPanelOpen == true;
+        bool explorerOpen = ViewModel?.IsExplorerPanelOpen == true;
+        bool eitherOpen = searchOpen || explorerOpen;
+
+        // Show/hide the left column
+        if (_searchPanelColumn != null)
+        {
+            if (eitherOpen)
+            {
+                var width = ViewModel?.SearchPanelWidth ?? 350;
+                _searchPanelColumn.Width = new GridLength(width);
+                _searchPanelColumn.MinWidth = 250;
+                _searchPanelColumn.MaxWidth = 600;
+            }
+            else
+            {
+                _searchPanelColumn.Width = new GridLength(0);
+                _searchPanelColumn.MinWidth = 0;
+                _searchPanelColumn.MaxWidth = 0;
+            }
+        }
+
+        if (_searchSplitterColumn != null)
+            _searchSplitterColumn.Width = eitherOpen ? GridLength.Auto : new GridLength(0);
+        if (_searchSplitter != null)
+            _searchSplitter.IsVisible = eitherOpen;
+
+        // Manage internal row layout
+        if (_searchPanelRow != null)
+        {
+            if (searchOpen)
+            {
+                _searchPanelRow.Height = new GridLength(1, GridUnitType.Star);
+            }
+            else
+            {
+                _searchPanelRow.Height = new GridLength(0);
+            }
+        }
+
+        if (_explorerSplitterRow != null)
+        {
+            _explorerSplitterRow.Height = (searchOpen && explorerOpen) ? GridLength.Auto : new GridLength(0);
+        }
+        if (_leftPanelSplitter != null)
+        {
+            _leftPanelSplitter.IsVisible = searchOpen && explorerOpen;
+        }
+
+        if (_explorerPanelRow != null)
+        {
+            if (explorerOpen)
+            {
+                _explorerPanelRow.Height = new GridLength(1, GridUnitType.Star);
+            }
+            else
+            {
+                _explorerPanelRow.Height = new GridLength(0);
+            }
         }
     }
 
@@ -1162,6 +1322,12 @@ public partial class MainWindow : Window
         }
     }
 
+    private void Settings_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        var dialog = new SettingsDialog();
+        dialog.ShowDialog(this);
+    }
+
     private void Replace_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         ShowFindReplaceDialog();
@@ -1191,6 +1357,12 @@ public partial class MainWindow : Window
 
         // Save search panel width before closing
         if (ViewModel != null && ViewModel.IsSearchPanelOpen && _searchPanelColumn != null)
+        {
+            ViewModel.SearchPanelWidth = _searchPanelColumn.Width.Value;
+        }
+
+        // Save explorer panel width (shared column)
+        if (ViewModel != null && (ViewModel.IsExplorerPanelOpen || ViewModel.IsSearchPanelOpen) && _searchPanelColumn != null)
         {
             ViewModel.SearchPanelWidth = _searchPanelColumn.Width.Value;
         }
