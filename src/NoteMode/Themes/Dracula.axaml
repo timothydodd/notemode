@@ -86,7 +86,7 @@
     </Style>
 
     <Style Selector="ae|TextEditor">
-        <Setter Property="Background" Value="#1E1F29"/>
+        <Setter Property="Background" Value="#181920"/>
         <Setter Property="Foreground" Value="#e0e0e0"/>
         <Setter Property="LineNumbersForeground" Value="#6272a4"/>
         <Setter Property="FontFamily" Value="Consolas"/>
