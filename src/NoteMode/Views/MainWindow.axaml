@@ -91,7 +91,7 @@
                             <MenuItem Header="_Close Tab" Click="CloseTab_MenuItem_Click" InputGesture="Ctrl+W">
                                 <MenuItem.Icon>
                                     <Path Data="M18 6 6 18M6 6l12 12"
-                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" Stretch="Uniform" Width="16" Height="16"/>
+                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
                                 </MenuItem.Icon>
                             </MenuItem>
                             <MenuItem Header="Close _All" Click="CloseAll_MenuItem_Click" />
@@ -203,7 +203,7 @@
                                 Orientation="Horizontal"
                                 VerticalAlignment="Stretch">
                         <Button Click="Minimize_Click"
-                                Width="46" Height="32"
+                                Width="36" Height="28"
                                 Background="Transparent"
                                 BorderThickness="0"
                                 VerticalContentAlignment="Center"
@@ -212,12 +212,13 @@
                                   Stroke="{DynamicResource TitleBarForeground}"
                                   StrokeThickness="1.5"
                                   StrokeLineCap="Round"
+                                  StrokeJoin="Round"
                                   Stretch="Fill"
-                                  Width="12" Height="1"/>
+                                  Width="10" Height="1"/>
                         </Button>
                         <Button x:Name="MaximizeButton"
                                 Click="MaximizeRestore_Click"
-                                Width="46" Height="32"
+                                Width="36" Height="28"
                                 Background="Transparent"
                                 BorderThickness="0"
                                 VerticalContentAlignment="Center"
@@ -228,10 +229,10 @@
                                   StrokeLineCap="Round"
                                   StrokeJoin="Round"
                                   Stretch="Uniform"
-                                  Width="14" Height="14"/>
+                                  Width="10" Height="10"/>
                         </Button>
                         <Button Click="Close_Click"
-                                Width="46" Height="32"
+                                Width="36" Height="28"
                                 Background="Transparent"
                                 BorderThickness="0"
                                 VerticalContentAlignment="Center"
@@ -241,8 +242,9 @@
                                   Stroke="{DynamicResource TitleBarForeground}"
                                   StrokeThickness="1.5"
                                   StrokeLineCap="Round"
+                                  StrokeJoin="Round"
                                   Stretch="Uniform"
-                                  Width="14" Height="14"/>
+                                  Width="10" Height="10"/>
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -369,7 +371,10 @@
                                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="8,4">
                                             <!-- Drag Handle -->
                                             <Path Data="M8 12a1 1 0 1 0 2 0 1 1 0 1 0-2 0M8 5a1 1 0 1 0 2 0 1 1 0 1 0-2 0M8 19a1 1 0 1 0 2 0 1 1 0 1 0-2 0M14 12a1 1 0 1 0 2 0 1 1 0 1 0-2 0M14 5a1 1 0 1 0 2 0 1 1 0 1 0-2 0M14 19a1 1 0 1 0 2 0 1 1 0 1 0-2 0"
-                                                  Fill="{DynamicResource DragHandleColor}"
+                                                  Stroke="{DynamicResource DragHandleColor}"
+                                                  StrokeThickness="1.5"
+                                                  StrokeLineCap="Round"
+                                                  StrokeJoin="Round"
                                                   Stretch="Uniform"
                                                   Width="8" Height="12"
                                                   VerticalAlignment="Center"
@@ -509,7 +514,7 @@
                     Opacity="0.9">
                 <StackPanel Orientation="Horizontal" Spacing="4">
                     <Path Data="M8 12a1 1 0 1 0 2 0 1 1 0 1 0-2 0M8 5a1 1 0 1 0 2 0 1 1 0 1 0-2 0M8 19a1 1 0 1 0 2 0 1 1 0 1 0-2 0M14 12a1 1 0 1 0 2 0 1 1 0 1 0-2 0M14 5a1 1 0 1 0 2 0 1 1 0 1 0-2 0M14 19a1 1 0 1 0 2 0 1 1 0 1 0-2 0"
-                          Fill="{DynamicResource DragHandleColor}" Stretch="Uniform" Width="6" Height="10" VerticalAlignment="Center" Opacity="0.6"/>
+                          Stroke="{DynamicResource DragHandleColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="6" Height="10" VerticalAlignment="Center" Opacity="0.6"/>
                     <TextBlock x:Name="DragGhostText" Foreground="{DynamicResource DragGhostForeground}" FontSize="11" VerticalAlignment="Center"/>
                 </StackPanel>
             </Border>

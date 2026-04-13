@@ -44,6 +44,7 @@
                               Stroke="{DynamicResource TitleBarForeground}"
                               StrokeThickness="1.5"
                               StrokeLineCap="Round"
+                              StrokeJoin="Round"
                               Stretch="Uniform"
                               Width="14" Height="14"/>
                     </Button>

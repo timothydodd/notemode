@@ -43,6 +43,7 @@
                               Stroke="{DynamicResource SearchPanelHeaderText}"
                               StrokeThickness="1.5"
                               StrokeLineCap="Round"
+                              StrokeJoin="Round"
                               Stretch="Uniform"
                               Width="12" Height="12"/>
                     </Button>
