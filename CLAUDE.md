@@ -68,9 +68,15 @@ Uses Dracula color scheme defined in `Themes/Dracula.axaml`:
 - Background: `#282a36`, Title bar: `#21222c`, Foreground: `#f8f8f2`
 - Syntax colors set in `SyntaxService.cs` (comments gray, strings yellow, keywords pink, etc.)
 
-## Icons
-
-Icons use [Lucide](https://github.com/lucide-icons/lucide) designs (ISC license), rendered as native Avalonia `Path` elements with `Stroke` bindings for theme support. Icon path data is embedded inline in AXAML files using the Lucide 24x24 grid coordinate system with `Stretch="Uniform"` to scale to the desired size.
+### Icons — Lucide
+- All UI icons (except the app icon) use **Lucide** SVG paths from https://github.com/lucide-icons/lucide/tree/main/icons
+- Icons are **stroke-based**: use `Stroke`, `StrokeThickness="1.5"`, `StrokeLineCap="Round"`, `StrokeJoin="Round"` — never `Fill` for icons. (Avalonia uses `StrokeJoin`, not `StrokeLineJoin`.)
+- Lucide SVGs use a 24×24 viewBox. Multi-element SVGs (multiple `<path>`, `<circle>`, `<rect>`, `<ellipse>`) must be combined into a single `Data` string:
+  - Concatenate multiple `<path d="..."/>` with spaces: `"M3 12h18 M12 3v18"`
+  - Convert `<circle cx="12" cy="12" r="10"/>` → `M2 12a10 10 0 1 0 20 0a10 10 0 1 0-20 0`
+  - Convert `<ellipse cx="12" cy="5" rx="9" ry="3"/>` → `M3 5a9 3 0 1 0 18 0a9 3 0 1 0-18 0`
+  - Convert `<rect x="3" y="3" width="18" height="18" rx="2"/>` → `M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z`
+- When adding new icons, find the matching Lucide icon at the URL above, fetch its SVG, and convert using the rules above.
 
 ## Keyboard Shortcuts
 
