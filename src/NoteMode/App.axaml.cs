@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -57,15 +58,24 @@ public partial class App : Application
             };
 
             // Open files passed via command line arguments
-            if (desktop.Args != null)
+            var filesToOpen = desktop.Args?
+                .Where(a => !string.IsNullOrEmpty(a) && File.Exists(a))
+                .ToArray() ?? Array.Empty<string>();
+
+            if (filesToOpen.Length > 0)
             {
-                foreach (var arg in desktop.Args)
+                // Launched via file association: hide the persisted workspace
+                // until the user pins the opened file(s).
+                viewModel.EnterEphemeralMode();
+
+                foreach (var arg in filesToOpen)
                 {
-                    if (!string.IsNullOrEmpty(arg) && File.Exists(arg))
-                    {
-                        viewModel.OpenFile(arg);
-                    }
+                    viewModel.OpenFile(arg);
                 }
+            }
+            else
+            {
+                viewModel.EnsureInitialTab();
             }
 
             desktop.ShutdownRequested += (s, e) =>

@@ -29,6 +29,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private bool _isExplorerPanelOpen;
     private double _explorerPanelWidth = 300;
     private StatusBarViewModel _statusBar = new();
+    private bool _isEphemeralMode;
+    private readonly System.Collections.Generic.List<TabViewModel> _pendingWorkspace = new();
 
     // Window position/size state
     public double WindowWidth { get; set; } = 1200;
@@ -69,16 +71,18 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
         LoadState();
 
-        // Ensure at least one tab exists
-        if (Tabs.Count == 0)
-        {
-            NewTab();
-        }
-
         // Setup file change monitoring
         _fileChangeService.FileChangedExternally += OnFileChangedExternally;
         _fileChangeService.SetTabs(Tabs);
         _fileChangeService.Start();
+    }
+
+    public void EnsureInitialTab()
+    {
+        if (Tabs.Count == 0 && !_isEphemeralMode)
+        {
+            NewTab();
+        }
     }
 
     private void OnFileChangedExternally(object? sender, TabViewModel tab)
@@ -246,6 +250,19 @@ public class MainWindowViewModel : INotifyPropertyChanged
             if (Math.Abs(_notesPanelWidth - value) > 0.5)
             {
                 _notesPanelWidth = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public bool IsEphemeralMode
+    {
+        get => _isEphemeralMode;
+        private set
+        {
+            if (_isEphemeralMode != value)
+            {
+                _isEphemeralMode = value;
                 OnPropertyChanged();
             }
         }
@@ -624,8 +641,61 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
+    public void EnterEphemeralMode()
+    {
+        // Hold persisted tabs out of view; they come back when the user pins.
+        _pendingWorkspace.Clear();
+        foreach (var t in Tabs)
+            _pendingWorkspace.Add(t);
+
+        Tabs.Clear();
+        SelectedTab = null;
+        IsEphemeralMode = true;
+    }
+
+    public void PinEphemeralTab(TabViewModel? _ = null)
+    {
+        if (!_isEphemeralMode)
+            return;
+
+        // Remember ephemeral tabs so we can prepend the workspace and keep them visible.
+        var ephemeralTabs = Tabs.ToList();
+        var ephemeralPaths = ephemeralTabs
+            .Where(t => !string.IsNullOrEmpty(t.FilePath))
+            .Select(t => t.FilePath!.ToLowerInvariant())
+            .ToHashSet();
+        var ephemeralIds = ephemeralTabs.Select(t => t.Id).ToHashSet();
+
+        Tabs.Clear();
+        foreach (var pending in _pendingWorkspace)
+        {
+            if (ephemeralIds.Contains(pending.Id))
+                continue;
+            if (!string.IsNullOrEmpty(pending.FilePath)
+                && ephemeralPaths.Contains(pending.FilePath!.ToLowerInvariant()))
+                continue;
+            Tabs.Add(pending);
+        }
+        foreach (var tab in ephemeralTabs)
+            Tabs.Add(tab);
+
+        _pendingWorkspace.Clear();
+        IsEphemeralMode = false;
+
+        if (ephemeralTabs.Count > 0)
+            SelectedTab = ephemeralTabs[0];
+        else if (Tabs.Count > 0)
+            SelectedTab = Tabs[0];
+
+        SaveState();
+    }
+
     public void SaveState()
     {
+        // Don't overwrite persisted workspace while we're showing only an ephemeral file.
+        if (_isEphemeralMode)
+            return;
+
         var state = new AppState
         {
             Tabs = Tabs.Select((t, i) => t.ToState(i)).ToList(),
