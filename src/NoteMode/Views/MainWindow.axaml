@@ -210,9 +210,8 @@
                                 HorizontalContentAlignment="Center">
                             <Path Data="M5 12h14"
                                   Stroke="{DynamicResource TitleBarForeground}"
-                                  StrokeThickness="1.5"
+                                  StrokeThickness="1"
                                   StrokeLineCap="Round"
-                                  StrokeJoin="Round"
                                   Stretch="Fill"
                                   Width="10" Height="1"/>
                         </Button>
@@ -223,9 +222,9 @@
                                 BorderThickness="0"
                                 VerticalContentAlignment="Center"
                                 HorizontalContentAlignment="Center">
-                            <Path Data="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"
+                            <Path Data="M8 3H5a2 2 0 0 0-2 2v3 M21 8V5a2 2 0 0 0-2-2h-3 M3 16v3a2 2 0 0 0 2 2h3 M16 21h3a2 2 0 0 0 2-2v-3"
                                   Stroke="{DynamicResource TitleBarForeground}"
-                                  StrokeThickness="1.5"
+                                  StrokeThickness="1"
                                   StrokeLineCap="Round"
                                   StrokeJoin="Round"
                                   Stretch="Uniform"
@@ -240,9 +239,8 @@
                                 Classes="close">
                             <Path Data="M18 6 6 18M6 6l12 12"
                                   Stroke="{DynamicResource TitleBarForeground}"
-                                  StrokeThickness="1.5"
+                                  StrokeThickness="1"
                                   StrokeLineCap="Round"
-                                  StrokeJoin="Round"
                                   Stretch="Uniform"
                                   Width="10" Height="10"/>
                         </Button>
@@ -327,10 +325,7 @@
                               Width="11" Height="11"
                               VerticalAlignment="Center"/>
                     </Button>
-                    <ScrollViewer HorizontalScrollBarVisibility="Auto"
-                                  VerticalScrollBarVisibility="Disabled">
-                        <StackPanel Orientation="Horizontal">
-                        <!-- Tab Items -->
+                    <!-- Tab Items -->
                         <ListBox x:Name="TabStrip"
                                  ItemsSource="{Binding Tabs}"
                                  SelectedItem="{Binding SelectedTab}"
@@ -341,7 +336,7 @@
                                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal"/>
+                                    <WrapPanel Orientation="Horizontal"/>
                                 </ItemsPanelTemplate>
                             </ListBox.ItemsPanel>
                             <ListBox.ItemTemplate>
@@ -402,6 +397,27 @@
                                                        VerticalAlignment="Center"
                                                        Margin="5,0,0,0"
                                                        IsVisible="{Binding ShowDirtyIndicator}"/>
+                                            <Button Command="{Binding #MainWin.PinTabCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Padding="0"
+                                                    Margin="4,0,0,0"
+                                                    Width="20" Height="20"
+                                                    Background="Transparent"
+                                                    Opacity="0.6"
+                                                    VerticalAlignment="Center"
+                                                    VerticalContentAlignment="Center"
+                                                    HorizontalContentAlignment="Center"
+                                                    ToolTip.Tip="Pin to workspace"
+                                                    Classes="tabpin"
+                                                    IsVisible="{Binding #MainWin.IsEphemeralMode}">
+                                                <Path Data="M12 17v5 M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"
+                                                      Stroke="{DynamicResource TabCloseIconColor}"
+                                                      StrokeThickness="1.5"
+                                                      StrokeLineCap="Round"
+                                                      StrokeJoin="Round"
+                                                      Stretch="Uniform"
+                                                      Width="11" Height="11"/>
+                                            </Button>
                                             <Button Command="{Binding #MainWin.CloseTabWithPromptCommand}"
                                                     CommandParameter="{Binding}"
                                                     Padding="0"
@@ -432,8 +448,6 @@
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
-                        </StackPanel>
-                    </ScrollViewer>
                     </DockPanel>
                 </Border>
 
@@ -532,6 +546,10 @@
         </Style>
         <!-- Tab close button hover -->
         <Style Selector="Button.tabclose:pointerover">
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+        <!-- Tab pin button hover -->
+        <Style Selector="Button.tabpin:pointerover">
             <Setter Property="Opacity" Value="1"/>
         </Style>
     </Window.Styles>

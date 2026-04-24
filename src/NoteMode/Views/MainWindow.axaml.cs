@@ -11,6 +11,18 @@ namespace NoteMode.Views;
 
 public partial class MainWindow : Window
 {
+    public static readonly DirectProperty<MainWindow, bool> IsEphemeralModeProperty =
+        AvaloniaProperty.RegisterDirect<MainWindow, bool>(
+            nameof(IsEphemeralMode),
+            o => o.IsEphemeralMode);
+
+    private bool _isEphemeralMode;
+    public bool IsEphemeralMode
+    {
+        get => _isEphemeralMode;
+        private set => SetAndRaise(IsEphemeralModeProperty, ref _isEphemeralMode, value);
+    }
+
     private TabViewModel? _draggedTab;
     private Control? _draggedElement;
     private Point _dragStartPoint;
@@ -52,6 +64,7 @@ public partial class MainWindow : Window
         UndoCommand = new RelayCommand(_ => GetCurrentEditorView()?.Undo());
         RedoCommand = new RelayCommand(_ => GetCurrentEditorView()?.Redo());
         CloseTabWithPromptCommand = new RelayCommand(tab => RunAsync(() => TryCloseTabAsync(tab as TabViewModel)));
+        PinTabCommand = new RelayCommand(tab => ViewModel?.PinEphemeralTab(tab as TabViewModel));
         CloseOthersWithPromptCommand = new RelayCommand(tab => RunAsync(() => TryCloseOthersAsync(tab as TabViewModel)));
         CloseToRightWithPromptCommand = new RelayCommand(tab => RunAsync(() => TryCloseToRightAsync(tab as TabViewModel)));
         CloseToLeftWithPromptCommand = new RelayCommand(tab => RunAsync(() => TryCloseToLeftAsync(tab as TabViewModel)));
@@ -143,6 +156,12 @@ public partial class MainWindow : Window
         if (ViewModel != null)
         {
             ViewModel.ExternalChangeDetected += OnExternalChangeDetected;
+            IsEphemeralMode = ViewModel.IsEphemeralMode;
+            ViewModel.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(MainWindowViewModel.IsEphemeralMode))
+                    IsEphemeralMode = ViewModel.IsEphemeralMode;
+            };
             RestoreWindowPosition();
             InitializeSearchPanel();
             InitializeExplorerPanel();
@@ -260,6 +279,7 @@ public partial class MainWindow : Window
     public ICommand UndoCommand { get; }
     public ICommand RedoCommand { get; }
     public ICommand CloseTabWithPromptCommand { get; }
+    public ICommand PinTabCommand { get; }
     public ICommand CloseOthersWithPromptCommand { get; }
     public ICommand CloseToRightWithPromptCommand { get; }
     public ICommand CloseToLeftWithPromptCommand { get; }
