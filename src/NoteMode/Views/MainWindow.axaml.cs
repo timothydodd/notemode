@@ -63,6 +63,7 @@ public partial class MainWindow : Window
         RenameTabCommand = new RelayCommand(tab => RunAsync(() => RenameTabAsync(tab as TabViewModel)));
         UndoCommand = new RelayCommand(_ => GetCurrentEditorView()?.Undo());
         RedoCommand = new RelayCommand(_ => GetCurrentEditorView()?.Redo());
+        TogglePreviewCommand = new RelayCommand(_ => GetCurrentEditorView()?.TogglePreview());
         CloseTabWithPromptCommand = new RelayCommand(tab => RunAsync(() => TryCloseTabAsync(tab as TabViewModel)));
         PinTabCommand = new RelayCommand(tab => ViewModel?.PinEphemeralTab(tab as TabViewModel));
         CloseOthersWithPromptCommand = new RelayCommand(tab => RunAsync(() => TryCloseOthersAsync(tab as TabViewModel)));
@@ -99,6 +100,11 @@ public partial class MainWindow : Window
         else if (e.Key == Key.E && e.KeyModifiers == KeyModifiers.Control)
         {
             ToggleExplorerPanel();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.V && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift))
+        {
+            GetCurrentEditorView()?.TogglePreview();
             e.Handled = true;
         }
         else if (e.Key == Key.N && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift))
@@ -278,6 +284,7 @@ public partial class MainWindow : Window
     public ICommand RenameTabCommand { get; }
     public ICommand UndoCommand { get; }
     public ICommand RedoCommand { get; }
+    public ICommand TogglePreviewCommand { get; }
     public ICommand CloseTabWithPromptCommand { get; }
     public ICommand PinTabCommand { get; }
     public ICommand CloseOthersWithPromptCommand { get; }
