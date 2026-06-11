@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
@@ -7,6 +8,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AvaloniaEdit;
 using AvaloniaEdit.Editing;
+using Markdown.Avalonia;
 using NoteMode.ViewModels;
 
 namespace NoteMode.Views;
@@ -14,6 +16,7 @@ namespace NoteMode.Views;
 public partial class EditorView : UserControl
 {
     private TextEditor? _editor;
+    private MarkdownScrollViewer? _preview;
     private TabViewModel? _viewModel;
     private MainWindowViewModel? _mainViewModel;
     private bool _isUpdatingFromViewModel;
@@ -42,6 +45,7 @@ public partial class EditorView : UserControl
     protected override void OnInitialized()
     {
         base.OnInitialized();
+        _preview = this.FindControl<MarkdownScrollViewer>("Preview");
         _editor = this.FindControl<TextEditor>("Editor");
         if (_editor != null)
         {
@@ -168,6 +172,12 @@ public partial class EditorView : UserControl
         if (_editor != null && _mainViewModel != null && _mainViewModel.FontSize > 0)
         {
             _editor.FontSize = _mainViewModel.FontSize;
+            if (_preview != null)
+            {
+                // MarkdownScrollViewer has no FontSize of its own; set the inherited
+                // TextElement.FontSize so it cascades to the rendered content.
+                TextElement.SetFontSize(_preview, _mainViewModel.FontSize);
+            }
             if (_markdownTransformer != null)
             {
                 _markdownTransformer.SetBaseFontSize(_mainViewModel.FontSize);
@@ -343,6 +353,23 @@ public partial class EditorView : UserControl
         if (_viewModel != null && _editor != null && !_isUpdatingFromViewModel)
         {
             _viewModel.Content = _editor.Text;
+        }
+    }
+
+    private void PreviewToggle_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_viewModel != null)
+        {
+            _viewModel.IsPreview = !_viewModel.IsPreview;
+        }
+    }
+
+    /// <summary>Toggle Markdown preview for the current tab (used by the keyboard shortcut).</summary>
+    public void TogglePreview()
+    {
+        if (_viewModel != null && _viewModel.CanPreview)
+        {
+            _viewModel.IsPreview = !_viewModel.IsPreview;
         }
     }
 

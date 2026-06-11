@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
@@ -27,7 +28,23 @@ public class FileAssociationService
         ["Data"] = new[] { ".sql", ".graphql", ".proto" }
     };
 
-    private const string ProgId = "NoteMode.Editor";
+    private static readonly Dictionary<string, string> CategoryIcons = new()
+    {
+        ["Text"] = "text.ico",
+        ["Config"] = "config.ico",
+        ["Web"] = "html.ico",
+        ["Programming"] = "csharp.ico",
+        ["Script"] = "shell.ico",
+        ["Data"] = "sql.ico",
+    };
+
+    private const string ProgIdPrefix = "NoteMode";
+    private const string LegacyProgId = "NoteMode.Editor";
+
+    private static readonly Dictionary<string, string> ExtensionToCategory =
+        ExtensionCategories
+            .SelectMany(kvp => kvp.Value.Select(ext => (ext, kvp.Key)))
+            .ToDictionary(x => x.ext, x => x.Key);
 
     public bool IsWindows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
@@ -58,25 +75,28 @@ public class FileAssociationService
 
     public void SetAssociation(string extension)
     {
-
         try
         {
             var exePath = Environment.ProcessPath;
             if (string.IsNullOrEmpty(exePath)) return;
+            if (!ExtensionToCategory.TryGetValue(extension, out var category)) return;
 
-            // Create ProgId key
-            using var progIdKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey($@"Software\Classes\{ProgId}");
-            progIdKey?.SetValue("", "NoteMode Text Editor");
+            var progId = ProgIdFor(category);
+            var iconPath = ResolveIconPath(exePath, category);
 
-            using var iconKey = progIdKey?.CreateSubKey("DefaultIcon");
-            iconKey?.SetValue("", $"\"{exePath}\",0");
+            using (var progIdKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey($@"Software\Classes\{progId}"))
+            {
+                progIdKey?.SetValue("", $"NoteMode {category} File");
 
-            using var commandKey = progIdKey?.CreateSubKey(@"shell\open\command");
-            commandKey?.SetValue("", $"\"{exePath}\" \"%1\"");
+                using var iconKey = progIdKey?.CreateSubKey("DefaultIcon");
+                iconKey?.SetValue("", $"\"{iconPath}\"");
 
-            // Associate extension
+                using var commandKey = progIdKey?.CreateSubKey(@"shell\open\command");
+                commandKey?.SetValue("", $"\"{exePath}\" \"%1\"");
+            }
+
             using var extKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey($@"Software\Classes\{extension}");
-            extKey?.SetValue("", ProgId);
+            extKey?.SetValue("", progId);
         }
         catch (Exception ex)
         {
@@ -86,14 +106,13 @@ public class FileAssociationService
 
     public void RemoveAssociation(string extension)
     {
-
         try
         {
             using var extKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey($@"Software\Classes\{extension}", writable: true);
             if (extKey != null)
             {
                 var currentValue = extKey.GetValue("") as string;
-                if (currentValue == ProgId)
+                if (currentValue != null && IsOurProgId(currentValue))
                 {
                     Microsoft.Win32.Registry.CurrentUser.DeleteSubKeyTree($@"Software\Classes\{extension}", throwOnMissingSubKey: false);
                 }
@@ -124,12 +143,27 @@ public class FileAssociationService
         try
         {
             using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey($@"Software\Classes\{extension}");
-            return key?.GetValue("") as string == ProgId;
+            return key?.GetValue("") is string value && IsOurProgId(value);
         }
         catch (Exception)
         {
             return false;
         }
+    }
+
+    private static bool IsOurProgId(string progId)
+    {
+        if (progId == LegacyProgId) return true;
+        return ExtensionCategories.Keys.Any(c => progId == ProgIdFor(c));
+    }
+
+    private static string ProgIdFor(string category) => $"{ProgIdPrefix}.{category}";
+
+    private static string ResolveIconPath(string exePath, string category)
+    {
+        var exeDir = Path.GetDirectoryName(exePath) ?? "";
+        var iconFile = CategoryIcons[category];
+        return Path.Combine(exeDir, "Assets", "FileIcons", iconFile);
     }
 
     [DllImport("shell32.dll", CharSet = CharSet.Auto)]

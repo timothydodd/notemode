@@ -16,6 +16,7 @@
 
     <Feature Id="ProductFeature" Title="NoteMode" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="FileIconComponents" />
       <ComponentGroupRef Id="ContextMenuComponents" />
     </Feature>
 
@@ -29,8 +30,18 @@
 
   <Fragment>
     <StandardDirectory Id="ProgramFiles6432Folder">
-      <Directory Id="INSTALLFOLDER" Name="NoteMode" />
+      <Directory Id="INSTALLFOLDER" Name="NoteMode">
+        <Directory Id="AssetsFolder" Name="Assets">
+          <Directory Id="FileIconsFolder" Name="FileIcons" />
+        </Directory>
+      </Directory>
     </StandardDirectory>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="FileIconComponents" Directory="FileIconsFolder">
+      <Files Include="$(PublishDir)\Assets\FileIcons\*.ico" />
+    </ComponentGroup>
   </Fragment>
 
   <Fragment>

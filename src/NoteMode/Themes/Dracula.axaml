@@ -50,6 +50,22 @@
         <!-- Icon colors -->
         <SolidColorBrush x:Key="MenuIconColor" Color="#6272a4"/>
         <SolidColorBrush x:Key="TabCloseIconColor" Color="#f8f8f2"/>
+        <!-- Markdown preview (matches in-editor MarkdownTransformer palette) -->
+        <SolidColorBrush x:Key="MdHeading1" Color="#bd93f9"/>
+        <SolidColorBrush x:Key="MdHeading2" Color="#ff79c6"/>
+        <SolidColorBrush x:Key="MdHeading3" Color="#8be9fd"/>
+        <SolidColorBrush x:Key="MdHeading4" Color="#50fa7b"/>
+        <SolidColorBrush x:Key="MdHeading5" Color="#ffb86c"/>
+        <SolidColorBrush x:Key="MdHeading6" Color="#f1fa8c"/>
+        <SolidColorBrush x:Key="MdText" Color="#f8f8f2"/>
+        <SolidColorBrush x:Key="MdCodeForeground" Color="#50fa7b"/>
+        <SolidColorBrush x:Key="MdCodeBackground" Color="#44475a"/>
+        <SolidColorBrush x:Key="MdLink" Color="#8be9fd"/>
+        <SolidColorBrush x:Key="MdBlockquoteBorder" Color="#6272a4"/>
+        <SolidColorBrush x:Key="MdTableBorder" Color="#6272a4"/>
+        <SolidColorBrush x:Key="MdTableHeaderBackground" Color="#44475a"/>
+        <SolidColorBrush x:Key="MdTableRowOdd" Color="Transparent"/>
+        <SolidColorBrush x:Key="MdTableRowEven" Color="#2f323e"/>
     </Styles.Resources>
 
     <Style Selector="Window">

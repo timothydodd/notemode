@@ -23,6 +23,7 @@
         <KeyBinding Gesture="Ctrl+Shift+A" Command="{Binding SaveAllCommand}" />
         <KeyBinding Gesture="Ctrl+W" Command="{Binding #MainWin.CloseTabWithPromptCommand}" CommandParameter="{Binding SelectedTab}" />
         <KeyBinding Gesture="Ctrl+Shift+W" Command="{Binding ToggleWhitespaceCommand}" />
+        <KeyBinding Gesture="Ctrl+Shift+V" Command="{Binding #MainWin.TogglePreviewCommand}" />
         <KeyBinding Gesture="Ctrl+Z" Command="{Binding #MainWin.UndoCommand}" />
         <KeyBinding Gesture="Ctrl+Y" Command="{Binding #MainWin.RedoCommand}" />
         <KeyBinding Gesture="Ctrl+F" Command="{Binding #MainWin.FindCommand}" />
@@ -150,6 +151,16 @@
                                       InputGesture="Ctrl+Shift+W">
                                 <MenuItem.Icon>
                                     <CheckBox IsChecked="{Binding ShowWhitespace}"
+                                              BorderThickness="0"
+                                              IsHitTestVisible="False"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Markdown _Preview"
+                                      Command="{Binding #MainWin.TogglePreviewCommand}"
+                                      IsEnabled="{Binding SelectedTab.CanPreview, FallbackValue=False}"
+                                      InputGesture="Ctrl+Shift+V">
+                                <MenuItem.Icon>
+                                    <CheckBox IsChecked="{Binding SelectedTab.IsPreview, FallbackValue=False}"
                                               BorderThickness="0"
                                               IsHitTestVisible="False"/>
                                 </MenuItem.Icon>

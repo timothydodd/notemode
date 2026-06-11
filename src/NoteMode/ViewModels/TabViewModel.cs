@@ -28,6 +28,7 @@ public class TabViewModel : INotifyPropertyChanged
     private bool _hasExternalChanges;
     private bool _externalChangesAcknowledged;
     private bool _isNote;
+    private bool _isPreview;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -156,6 +157,9 @@ public class TabViewModel : INotifyPropertyChanged
                 _syntaxName = value;
                 SyntaxHighlighting = _syntaxService.GetHighlightingByName(value);
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(CanPreview));
+                if (!CanPreview)
+                    IsPreview = false;
             }
         }
     }
@@ -199,6 +203,25 @@ public class TabViewModel : INotifyPropertyChanged
             if (_isNote != value)
             {
                 _isNote = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    /// <summary>True when this tab's content can be shown as a rendered preview (Markdown).</summary>
+    public bool CanPreview => _syntaxName == "MarkDown";
+
+    /// <summary>When true, the rendered preview is shown instead of the editor.</summary>
+    public bool IsPreview
+    {
+        get => _isPreview;
+        set
+        {
+            // Only Markdown tabs can enter preview mode.
+            var newValue = value && CanPreview;
+            if (_isPreview != newValue)
+            {
+                _isPreview = newValue;
                 OnPropertyChanged();
             }
         }
@@ -393,6 +416,9 @@ public class TabViewModel : INotifyPropertyChanged
         _syntaxName = syntaxName;
         SyntaxHighlighting = _syntaxService.GetHighlightingByName(syntaxName);
         OnPropertyChanged(nameof(SyntaxName));
+        OnPropertyChanged(nameof(CanPreview));
+        if (!CanPreview)
+            IsPreview = false;
     }
 
     public void RefreshSyntaxHighlighting()
