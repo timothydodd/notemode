@@ -105,8 +105,16 @@ public partial class EditorView : UserControl
     private void OnLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         // Get the main view model from the window
-        var window = this.GetVisualRoot() as Window;
+        var window = this.VisualRoot as Window;
         _mainViewModel = window?.DataContext as MainWindowViewModel;
+
+        // OnDataContextChanged (which loads content) runs before OnLoaded, when _mainViewModel
+        // is still null, so the status bar never gets populated. Refresh it now.
+        if (_mainViewModel != null)
+        {
+            UpdateStatusBarLineEnding();
+            OnCaretPositionChanged(null, EventArgs.Empty);
+        }
 
         if (_mainViewModel != null && !_settingsApplied)
         {
@@ -334,18 +342,70 @@ public partial class EditorView : UserControl
         }
     }
 
-    private void UpdateEditorContent()
+    // Content above this size (chars) is loaded with the blocking loading overlay shown,
+    // because assigning it to the editor (+ syntax highlighting) freezes the UI thread.
+    private const int LargeContentThreshold = 200_000;
+
+    private async void UpdateEditorContent()
     {
-        if (_editor != null && _viewModel != null)
+        if (_editor == null || _viewModel == null)
+            return;
+
+        var content = _viewModel.Content;
+        if (_editor.Text == content)
+            return;
+
+        // Documents with very long lines freeze AvaloniaEdit: the built-in hyperlink/email
+        // generators regex-scan each line, and with WordWrap off the editor measures the full
+        // width of the longest line. For such documents, disable the link generators and turn
+        // on word wrap so each long line is broken into manageable visual lines.
+        var hasLongLines = HasLongLines(content);
+        _editor.Options.EnableHyperlinks = !hasLongLines;
+        _editor.Options.EnableEmailHyperlinks = !hasLongLines;
+        _editor.WordWrap = hasLongLines;
+
+        var showOverlay = content.Length > LargeContentThreshold && _mainViewModel != null;
+        if (showOverlay)
+        {
+            _mainViewModel!.LoadingText = $"Loading {_viewModel.Title}…";
+            _mainViewModel.IsLoading = true;
+            // Yield so the overlay actually paints before the UI thread blocks on the assignment.
+            await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Render);
+        }
+
+        try
         {
             _isUpdatingFromViewModel = true;
-            if (_editor.Text != _viewModel.Content)
-            {
-                _editor.Text = _viewModel.Content;
-            }
+            _editor.Text = content;
             _isUpdatingFromViewModel = false;
             UpdateStatusBarLineEnding();
         }
+        finally
+        {
+            if (showOverlay)
+                _mainViewModel!.IsLoading = false;
+        }
+    }
+
+    // A single line longer than this makes AvaloniaEdit's link generators (and rendering)
+    // pathologically slow. Used to disable the hyperlink generators for such documents.
+    private const int LongLineThreshold = 5_000;
+
+    private static bool HasLongLines(string content)
+    {
+        int lineLength = 0;
+        foreach (var c in content)
+        {
+            if (c == '\n')
+            {
+                lineLength = 0;
+            }
+            else if (++lineLength > LongLineThreshold)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void OnEditorTextChanged(object? sender, EventArgs e)

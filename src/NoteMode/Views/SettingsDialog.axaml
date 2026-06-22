@@ -6,7 +6,7 @@
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaChromeHints="NoChrome"
+        WindowDecorations="None"
         ExtendClientAreaTitleBarHeightHint="32">
 
     <Panel>
