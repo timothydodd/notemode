@@ -3,6 +3,7 @@
              xmlns:ae="using:AvaloniaEdit"
              xmlns:md="clr-namespace:Markdown.Avalonia;assembly=Markdown.Avalonia"
              xmlns:ctxt="clr-namespace:ColorTextBlock.Avalonia;assembly=ColorTextBlock.Avalonia"
+             xmlns:views="using:NoteMode.Views"
              xmlns:vm="using:NoteMode.ViewModels"
              x:Class="NoteMode.Views.EditorView"
              x:DataType="vm:TabViewModel">
@@ -21,7 +22,7 @@
                 Padding="24,16,24,24"
                 IsVisible="{Binding IsPreview}">
             <md:MarkdownScrollViewer x:Name="Preview"
-                                     Markdown="{Binding Content}"
+                                     Markdown="{Binding Content, Converter={x:Static views:MarkdownTaskListConverter.Instance}}"
                                      MarkdownStyleName="Standard">
                 <!-- Override the Standard (light) style colors to match the app theme.
                      Inserted after the Standard style, so equal-specificity setters win. -->

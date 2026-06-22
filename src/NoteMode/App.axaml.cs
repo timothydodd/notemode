@@ -83,9 +83,42 @@ public partial class App : Application
                 viewModel.SaveState();
                 fileChangeService.Dispose();
             };
+
+            // Single-instance: open files forwarded from later launches in this instance.
+            SingleInstanceManager.StartServer(receivedArgs =>
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    HandleForwardedArgs(desktop, viewModel, receivedArgs)));
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private static void HandleForwardedArgs(
+        IClassicDesktopStyleApplicationLifetime desktop, MainWindowViewModel viewModel, string[] args)
+    {
+        var filesToOpen = args
+            .Where(a => !string.IsNullOrEmpty(a) && File.Exists(a))
+            .ToArray();
+
+        foreach (var file in filesToOpen)
+        {
+            viewModel.OpenFile(file);
+        }
+
+        // Bring the existing window to the foreground.
+        var window = desktop.MainWindow;
+        if (window != null)
+        {
+            if (window.WindowState == Avalonia.Controls.WindowState.Minimized)
+                window.WindowState = Avalonia.Controls.WindowState.Normal;
+
+            window.Show();
+            window.Activate();
+
+            // Nudge it above other windows without leaving it pinned.
+            window.Topmost = true;
+            window.Topmost = false;
+        }
     }
 
     public void ApplyTheme(bool useLightTheme)

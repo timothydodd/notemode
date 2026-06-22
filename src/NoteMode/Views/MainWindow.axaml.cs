@@ -180,50 +180,15 @@ public partial class MainWindow : Window
         if (ViewModel == null)
             return;
 
+        // Restore the saved size, but always open centered on screen
+        // (WindowStartupLocation="CenterScreen" is set in XAML).
         Width = ViewModel.WindowWidth;
         Height = ViewModel.WindowHeight;
-
-        if (ViewModel.WindowX.HasValue && ViewModel.WindowY.HasValue)
-        {
-            var x = (int)ViewModel.WindowX.Value;
-            var y = (int)ViewModel.WindowY.Value;
-
-            // Validate position is within visible screen area
-            if (Screens != null && IsPositionVisible(x, y))
-            {
-                Position = new PixelPoint(x, y);
-            }
-            else
-            {
-                WindowStartupLocation = WindowStartupLocation.CenterScreen;
-            }
-        }
 
         if (ViewModel.IsMaximized)
         {
             WindowState = WindowState.Maximized;
         }
-    }
-
-    private bool IsPositionVisible(int x, int y)
-    {
-        if (Screens?.All == null)
-            return false;
-
-        // Check if any part of the window title bar is visible on any screen
-        foreach (var screen in Screens.All)
-        {
-            var bounds = screen.WorkingArea;
-            // Consider the window visible if its top-left area overlaps with a screen
-            // Allow some tolerance: at least 100px of the window should be on screen
-            if (x + 100 > bounds.X && x < bounds.X + bounds.Width &&
-                y >= bounds.Y && y < bounds.Y + bounds.Height)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private void UpdateWindowBoundsOnViewModel()

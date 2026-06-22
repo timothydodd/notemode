@@ -32,6 +32,37 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private bool _isEphemeralMode;
     private readonly System.Collections.Generic.List<TabViewModel> _pendingWorkspace = new();
 
+    private bool _isLoading;
+    private string _loadingText = "Loading…";
+
+    /// <summary>When true, a blocking loading overlay is shown over the editor.</summary>
+    public bool IsLoading
+    {
+        get => _isLoading;
+        set
+        {
+            if (_isLoading != value)
+            {
+                _isLoading = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    /// <summary>Message shown in the loading overlay.</summary>
+    public string LoadingText
+    {
+        get => _loadingText;
+        set
+        {
+            if (_loadingText != value)
+            {
+                _loadingText = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     // Window position/size state
     public double WindowWidth { get; set; } = 1200;
     public double WindowHeight { get; set; } = 800;

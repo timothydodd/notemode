@@ -27,8 +27,7 @@
                       Content="Case sensitive"
                       Margin="8,0,0,0"
                       VerticalAlignment="Center"
-                      Checked="CaseSensitiveCheckBox_Changed"
-                      Unchecked="CaseSensitiveCheckBox_Changed"/>
+                      IsCheckedChanged="CaseSensitiveCheckBox_Changed"/>
         </Grid>
 
         <!-- Status -->

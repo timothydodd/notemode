@@ -444,5 +444,25 @@ public class TabViewModel : INotifyPropertyChanged
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        // The displayed size is derived from Content, so keep it in sync.
+        if (propertyName == nameof(Content))
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ContentSize)));
+        }
+    }
+
+    /// <summary>Human-readable UTF-8 byte size of the current content, for the status bar.</summary>
+    public string ContentSize
+    {
+        get
+        {
+            long bytes = System.Text.Encoding.UTF8.GetByteCount(_content);
+            if (bytes < 1024)
+                return $"{bytes} B";
+            if (bytes < 1024 * 1024)
+                return $"{bytes / 1024.0:0.#} KB";
+            return $"{bytes / (1024.0 * 1024.0):0.#} MB";
+        }
     }
 }
