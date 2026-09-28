@@ -1,6 +1,6 @@
 # Release notes
 
-One file per release, named after its tag (`v0.3.0.md`). The release workflow publishes the file as
+One file per release, named after its tag (`v0.3.1.md`). The release workflow publishes the file as
 the GitHub release description, and a `v*` tag build fails straight away if its file is missing, so
 write it before tagging.
 
