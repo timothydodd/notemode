@@ -103,6 +103,14 @@ Release with:
 
 The unsigned MSIX for Partner Center is a workflow artifact, not part of the release.
 
+Every release needs a description, committed before tagging as `docs/releases/<tag>.md` (what
+NoteMode is, what changed, which file to download; see `docs/releases/README.md`). The workflow
+publishes it as the release body and fails a tag build straight away if it is missing.
+
+Tag builds wait for approval: the job that signs and packages runs in the `release` environment,
+which requires a reviewer and admits only `v*` tags. Approve it under Actions > the run > Review
+deployments. Nothing is signed or published until then.
+
 The version comes from the tag (`v1.2.3` becomes assembly 1.2.3, shown in Settings > About, and
 package 1.2.3.0). The `<Version>` in `NoteMode.csproj` is only the fallback for local builds; bump
 it when tagging.

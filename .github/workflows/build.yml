@@ -53,6 +53,18 @@ jobs:
           "APP_VERSION=$version" >> $env:GITHUB_ENV
           Write-Host "Version $version"
 
+      # A release needs its description (docs/releases/<tag>.md). Checked first, so a tag without
+      # one fails here instead of after the signing approval.
+      - name: Release notes present
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $notes = "docs/releases/${{ github.ref_name }}.md"
+          if (-not (Test-Path $notes) -or -not (Get-Content $notes -Raw).Trim()) {
+            throw "Missing $notes. Write the release description (what NoteMode is, what changed, downloads) and tag again. See docs/releases/README.md."
+          }
+          Write-Host "Release notes: $notes"
+
       - name: Restore
         run: dotnet restore src/NoteMode.sln
 
@@ -303,6 +315,12 @@ jobs:
     permissions:
       contents: write
     steps:
+      # Only the release description is needed from the repository.
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: docs/releases
+          path: repo
+
       - uses: actions/download-artifact@v4
         with:
           name: NoteMode-installer
@@ -321,4 +339,6 @@ jobs:
             artifacts/NoteMode-Setup-*.exe
             artifacts/SHA256SUMS.txt
           name: NoteMode ${{ github.ref_name }}
+          # The written description, followed by GitHub's "Full Changelog" link.
+          body_path: repo/docs/releases/${{ github.ref_name }}.md
           generate_release_notes: true

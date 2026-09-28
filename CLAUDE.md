@@ -87,6 +87,8 @@ Same setup as the RoboMouse repo (see `docs/building.md`):
 - `packaging/installer/NoteMode.iss` (Inno Setup 6) built by `packaging/Build-Installer.ps1`; smoke test `packaging/Test-Installer.ps1`
 - `packaging/Build-Msix.ps1` + `packaging/Package.appxmanifest` for the Microsoft Store (file types declared in the manifest; Settings hides registry associations when `AppInfo.IsPackaged`)
 - `.github/workflows/build.yml`: build on push/PR; `v*` tags build the installer + MSIX, sign with Azure Trusted Signing (when configured), smoke-test the installer, then publish the GitHub release. The version comes from the tag; bump `<Version>` in `NoteMode.csproj` when tagging.
+- **Every release needs `docs/releases/<tag>.md`** (what NoteMode is, what's new in plain user-facing language, downloads/signing) committed before the tag is pushed; CI publishes it as the release description and fails the tag build without it. When editing an existing release, update both the file and the published body (`gh release edit <tag> --notes-file docs/releases/<tag>.md`).
+- Tag builds pause for the owner's approval (`release` environment, required reviewer, `v*` tags only) before anything is signed or published.
 
 ## Theming
 
