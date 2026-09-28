@@ -1,0 +1,115 @@
+<!--
+  Structural styles shared by both themes: window title bar buttons, side panel headers and the
+  monospace font. Colors come from the active theme (Dracula.axaml / Light.axaml) as DynamicResources,
+  so these apply unchanged in either theme. App.ApplyTheme adds them after the theme so they win
+  over the theme's general Button/TextBox rules.
+-->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="NoteMode.Themes.SharedStyles">
+
+    <!-- Resources: "MonoFont" (editor, search results, Markdown code) is set in SharedStyles'
+         constructor to the first installed monospace font. -->
+
+    <!-- Title bar window buttons (minimize / maximize / close) -->
+    <Style Selector="Button.winctl">
+        <Setter Property="Width" Value="40"/>
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Button.winctl:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource WindowControlHover}"/>
+    </Style>
+    <!-- After the general hover rule so it wins. -->
+    <Style Selector="Button.winctl.close:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource WindowCloseHover}"/>
+    </Style>
+    <Style Selector="Button.winctl.close:pointerover Path">
+        <Setter Property="Stroke" Value="White"/>
+    </Style>
+    <Style Selector="Button.winctl > Path">
+        <Setter Property="Stroke" Value="{DynamicResource TitleBarForeground}"/>
+        <Setter Property="StrokeThickness" Value="1.5"/>
+        <Setter Property="StrokeLineCap" Value="Round"/>
+        <Setter Property="StrokeJoin" Value="Round"/>
+        <Setter Property="Stretch" Value="Uniform"/>
+        <Setter Property="Width" Value="11"/>
+        <Setter Property="Height" Value="11"/>
+    </Style>
+
+    <!-- Side panel header: icon, UPPERCASE title, close button -->
+    <Style Selector="Border.panelHeader">
+        <Setter Property="Background" Value="{DynamicResource SearchPanelHeaderBackground}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SearchPanelBorder}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="Padding" Value="10,6"/>
+    </Style>
+    <Style Selector="TextBlock.panelTitle">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{DynamicResource SearchPanelHeaderText}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Opacity" Value="0.7"/>
+    </Style>
+    <Style Selector="Path.panelIcon">
+        <Setter Property="Stroke" Value="{DynamicResource SearchPanelHeaderText}"/>
+        <Setter Property="StrokeThickness" Value="1.5"/>
+        <Setter Property="StrokeLineCap" Value="Round"/>
+        <Setter Property="StrokeJoin" Value="Round"/>
+        <Setter Property="Stretch" Value="Uniform"/>
+        <Setter Property="Width" Value="13"/>
+        <Setter Property="Height" Value="13"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Opacity" Value="0.7"/>
+    </Style>
+    <Style Selector="Button.panelClose">
+        <Setter Property="Width" Value="24"/>
+        <Setter Property="Height" Value="24"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="ToolTip.Tip" Value="Close panel (Esc)"/>
+        <Setter Property="AutomationProperties.Name" Value="Close panel"/>
+    </Style>
+    <Style Selector="Button.panelClose > Path">
+        <Setter Property="Stroke" Value="{DynamicResource SearchPanelHeaderText}"/>
+        <Setter Property="StrokeThickness" Value="1.5"/>
+        <Setter Property="StrokeLineCap" Value="Round"/>
+        <Setter Property="StrokeJoin" Value="Round"/>
+        <Setter Property="Stretch" Value="Uniform"/>
+        <Setter Property="Width" Value="11"/>
+        <Setter Property="Height" Value="11"/>
+        <Setter Property="Data" Value="M18 6 6 18M6 6l12 12"/>
+    </Style>
+
+    <!-- Borderless inline TextBox (status bar zoom, inline rename): Fluent's 32px MinHeight would
+         push it taller than the row it sits in. -->
+    <Style Selector="TextBox.compact">
+        <Setter Property="MinHeight" Value="0"/>
+    </Style>
+
+    <!-- Status bar item that can be clicked (language picker) -->
+    <Style Selector="Button.statusItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="6,0"/>
+        <Setter Property="MinHeight" Value="0"/>
+        <Setter Property="Height" Value="22"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Foreground" Value="{DynamicResource StatusBarText}"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="Button.statusItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource WindowControlHover}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TitleBarForeground}"/>
+    </Style>
+</Styles>

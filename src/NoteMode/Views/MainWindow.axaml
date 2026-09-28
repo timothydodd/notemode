@@ -16,22 +16,18 @@
         WindowDecorations="BorderOnly"
         ExtendClientAreaTitleBarHeightHint="32">
 
+    <!-- Ctrl+S, Ctrl+Shift+S, Ctrl+Shift+F, Ctrl+E, Ctrl+Shift+V and Ctrl+Shift+N are handled in
+         MainWindow.OnPreviewKeyDown (tunnel), because the editor would otherwise consume them. -->
     <Window.KeyBindings>
         <KeyBinding Gesture="Ctrl+N" Command="{Binding NewTabCommand}" />
         <KeyBinding Gesture="Ctrl+O" Command="{Binding #MainWin.OpenFileCommand}" />
-        <KeyBinding Gesture="Ctrl+S" Command="{Binding #MainWin.SaveFileCommand}" />
-        <KeyBinding Gesture="Ctrl+Shift+S" Command="{Binding #MainWin.SaveAsCommand}" />
         <KeyBinding Gesture="Ctrl+Shift+A" Command="{Binding SaveAllCommand}" />
         <KeyBinding Gesture="Ctrl+W" Command="{Binding #MainWin.CloseTabWithPromptCommand}" CommandParameter="{Binding SelectedTab}" />
         <KeyBinding Gesture="Ctrl+Shift+W" Command="{Binding ToggleWhitespaceCommand}" />
-        <KeyBinding Gesture="Ctrl+Shift+V" Command="{Binding #MainWin.TogglePreviewCommand}" />
         <KeyBinding Gesture="Ctrl+Z" Command="{Binding #MainWin.UndoCommand}" />
         <KeyBinding Gesture="Ctrl+Y" Command="{Binding #MainWin.RedoCommand}" />
         <KeyBinding Gesture="Ctrl+F" Command="{Binding #MainWin.FindCommand}" />
-        <KeyBinding Gesture="Ctrl+Shift+F" Command="{Binding #MainWin.ToggleSearchPanelCommand}" />
         <KeyBinding Gesture="Ctrl+H" Command="{Binding #MainWin.ReplaceCommand}" />
-        <KeyBinding Gesture="Ctrl+Shift+N" Command="{Binding ToggleNotesPanelCommand}" />
-        <KeyBinding Gesture="Ctrl+E" Command="{Binding ToggleExplorerPanelCommand}" />
     </Window.KeyBindings>
 
     <Panel>
@@ -82,7 +78,7 @@
                                           Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
                                 </MenuItem.Icon>
                             </MenuItem>
-                            <MenuItem Header="Save as _Note" Click="SaveAsNote_Click"
+                            <MenuItem Header="Save As _Note" Click="SaveAsNote_Click"
                                       IsVisible="{Binding SelectedTab.IsNote, Converter={x:Static BoolConverters.Not}, FallbackValue=True}">
                                 <MenuItem.Icon>
                                     <Path Data="M21 9a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 15 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM15 3v5a1 1 0 0 0 1 1h5"
@@ -96,7 +92,7 @@
                                           Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
                                 </MenuItem.Icon>
                             </MenuItem>
-                            <MenuItem Header="Close _All" Click="CloseAll_MenuItem_Click" />
+                            <MenuItem Header="Clos_e All Tabs" Click="CloseAll_MenuItem_Click" />
                             <Separator />
                             <MenuItem Header="E_xit" Click="Exit_Click" InputGesture="Alt+F4">
                                 <MenuItem.Icon>
@@ -119,13 +115,27 @@
                                 </MenuItem.Icon>
                             </MenuItem>
                             <Separator />
-                            <MenuItem Header="_Find..." Click="Find_Click" InputGesture="Ctrl+F">
+                            <MenuItem Header="Cu_t" Click="Cut_Click" InputGesture="Ctrl+X">
                                 <MenuItem.Icon>
-                                    <Path Data="M19 11a8 8 0 1 0-16 0 8 8 0 0 0 16 0zM21 21l-4.34-4.34"
+                                    <Path Data="M3 6a3 3 0 1 0 6 0a3 3 0 1 0-6 0M8.12 8.12 12 12M20 4 8.12 15.88M3 18a3 3 0 1 0 6 0a3 3 0 1 0-6 0M14.8 14.8 20 20"
                                           Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
                                 </MenuItem.Icon>
                             </MenuItem>
-                            <MenuItem Header="_Search" Click="ToggleSearchPanel_Click" InputGesture="Ctrl+Shift+F">
+                            <MenuItem Header="_Copy" Click="Copy_Click" InputGesture="Ctrl+C">
+                                <MenuItem.Icon>
+                                    <Path Data="M10 8h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2zM4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
+                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="_Paste" Click="Paste_Click" InputGesture="Ctrl+V">
+                                <MenuItem.Icon>
+                                    <Path Data="M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zM16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Select _All" Click="SelectAll_Click" InputGesture="Ctrl+A"/>
+                            <Separator />
+                            <MenuItem Header="_Find..." Click="Find_Click" InputGesture="Ctrl+F">
                                 <MenuItem.Icon>
                                     <Path Data="M19 11a8 8 0 1 0-16 0 8 8 0 0 0 16 0zM21 21l-4.34-4.34"
                                           Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
@@ -134,6 +144,12 @@
                             <MenuItem Header="_Replace..." Click="Replace_Click" InputGesture="Ctrl+H">
                                 <MenuItem.Icon>
                                     <Path Data="M14 4a1 1 0 0 1 1-1M15 10a1 1 0 0 1-1-1M21 4a1 1 0 0 0-1-1M21 9a1 1 0 0 1-1 1M3 7l3 3 3-3M6 10V5a2 2 0 0 1 2-2h2 M4 14h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1z"
+                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="_Search in Tabs and Files..." Click="ToggleSearchPanel_Click" InputGesture="Ctrl+Shift+F">
+                                <MenuItem.Icon>
+                                    <Path Data="M14 2v4a2 2 0 0 0 2 2h4M4.268 21a2 2 0 0 0 1.727 1H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3M9 18l-1.5-1.5M2 14a3 3 0 1 0 6 0a3 3 0 1 0-6 0"
                                           Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
                                 </MenuItem.Icon>
                             </MenuItem>
@@ -186,7 +202,7 @@
                                 </MenuItem.Icon>
                             </MenuItem>
                             <Separator />
-                            <MenuItem Header="_Light Theme"
+                            <MenuItem Header="Lig_ht Theme"
                                       Command="{Binding ToggleLightThemeCommand}">
                                 <MenuItem.Icon>
                                     <CheckBox IsChecked="{Binding UseLightTheme}"
@@ -214,47 +230,20 @@
                     <StackPanel Grid.Column="3"
                                 Orientation="Horizontal"
                                 VerticalAlignment="Stretch">
-                        <Button Click="Minimize_Click"
-                                Width="36" Height="28"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                VerticalContentAlignment="Center"
-                                HorizontalContentAlignment="Center">
-                            <Path Data="M5 12h14"
-                                  Stroke="{DynamicResource TitleBarForeground}"
-                                  StrokeThickness="1"
-                                  StrokeLineCap="Round"
-                                  Stretch="Fill"
-                                  Width="10" Height="1"/>
+                        <Button Classes="winctl" Click="Minimize_Click"
+                                ToolTip.Tip="Minimize" AutomationProperties.Name="Minimize">
+                            <!-- A flat line has no height to scale uniformly; stretch it to a 1px bar. -->
+                            <Path Data="M5 12h14" Stretch="Fill" Height="1"/>
                         </Button>
-                        <Button x:Name="MaximizeButton"
-                                Click="MaximizeRestore_Click"
-                                Width="36" Height="28"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                VerticalContentAlignment="Center"
-                                HorizontalContentAlignment="Center">
-                            <Path Data="M8 3H5a2 2 0 0 0-2 2v3 M21 8V5a2 2 0 0 0-2-2h-3 M3 16v3a2 2 0 0 0 2 2h3 M16 21h3a2 2 0 0 0 2-2v-3"
-                                  Stroke="{DynamicResource TitleBarForeground}"
-                                  StrokeThickness="1"
-                                  StrokeLineCap="Round"
-                                  StrokeJoin="Round"
-                                  Stretch="Uniform"
-                                  Width="10" Height="10"/>
+                        <Button x:Name="MaximizeButton" Classes="winctl" Click="MaximizeRestore_Click"
+                                ToolTip.Tip="Maximize" AutomationProperties.Name="Maximize">
+                            <!-- Lucide "maximize"; swapped for "minimize" while maximized (code-behind) -->
+                            <Path x:Name="MaximizeIcon"
+                                  Data="M8 3H5a2 2 0 0 0-2 2v3 M21 8V5a2 2 0 0 0-2-2h-3 M3 16v3a2 2 0 0 0 2 2h3 M16 21h3a2 2 0 0 0 2-2v-3"/>
                         </Button>
-                        <Button Click="Close_Click"
-                                Width="36" Height="28"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                VerticalContentAlignment="Center"
-                                HorizontalContentAlignment="Center"
-                                Classes="close">
-                            <Path Data="M18 6 6 18M6 6l12 12"
-                                  Stroke="{DynamicResource TitleBarForeground}"
-                                  StrokeThickness="1"
-                                  StrokeLineCap="Round"
-                                  Stretch="Uniform"
-                                  Width="10" Height="10"/>
+                        <Button Classes="winctl close" Click="Close_Click"
+                                ToolTip.Tip="Close" AutomationProperties.Name="Close">
+                            <Path Data="M18 6 6 18M6 6l12 12"/>
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -274,6 +263,8 @@
                     <!-- Zoom Input (Left) -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="2">
                         <TextBox Text="{Binding ZoomPercentage}"
+                                 Classes="compact"
+                                 ToolTip.Tip="Zoom (Ctrl+Scroll)"
                                  Width="40"
                                  Height="18"
                                  FontSize="11"
@@ -287,7 +278,7 @@
                     </StackPanel>
 
                     <!-- Right side status info -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="16" HorizontalAlignment="Right">
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="12" HorizontalAlignment="Right">
                         <TextBlock Foreground="{DynamicResource StatusBarText}" FontSize="11">
                             <Run Text="Ln "/>
                             <Run Text="{Binding StatusBar.Line}"/>
@@ -295,18 +286,17 @@
                             <Run Text="{Binding StatusBar.Column}"/>
                         </TextBlock>
                         <TextBlock Text="|" Foreground="{DynamicResource StatusBarSeparator}" FontSize="11"/>
-                        <TextBlock Text="{Binding StatusBar.Encoding}" Foreground="{DynamicResource StatusBarText}" FontSize="11"/>
+                        <TextBlock Text="{Binding SelectedTab.EncodingName, FallbackValue='UTF-8'}" Foreground="{DynamicResource StatusBarText}" FontSize="11" ToolTip.Tip="File encoding (kept when saving)"/>
                         <TextBlock Text="|" Foreground="{DynamicResource StatusBarSeparator}" FontSize="11"/>
                         <TextBlock Text="{Binding SelectedTab.ContentSize, FallbackValue='0 B'}" Foreground="{DynamicResource StatusBarText}" FontSize="11"/>
                         <TextBlock Text="|" Foreground="{DynamicResource StatusBarSeparator}" FontSize="11"/>
                         <TextBlock Text="{Binding StatusBar.LineEnding}" Foreground="{DynamicResource StatusBarText}" FontSize="11"/>
                         <TextBlock Text="|" Foreground="{DynamicResource StatusBarSeparator}" FontSize="11"/>
-                        <TextBlock x:Name="LanguageButton"
-                                   Text="{Binding SelectedTab.SyntaxName, FallbackValue='Plain Text'}"
-                                   Foreground="{DynamicResource StatusBarText}"
-                                   FontSize="11"
-                                   Cursor="Hand"
-                                   PointerPressed="LanguageButton_PointerPressed"/>
+                        <Button x:Name="LanguageButton"
+                                Classes="statusItem"
+                                Content="{Binding SelectedTab.SyntaxName, FallbackValue='Plain Text'}"
+                                ToolTip.Tip="Select language mode"
+                                Click="LanguageButton_Click"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -362,18 +352,22 @@
                                           RowDefinitions="*,2">
                                         <Grid.ContextMenu>
                                             <ContextMenu x:DataType="vm:TabViewModel">
-                                                <MenuItem Header="Close" Tag="{Binding}" Click="CloseTab_Click" />
+                                                <MenuItem Header="Close" Tag="{Binding}" Click="CloseTab_Click" InputGesture="Ctrl+W" />
                                                 <MenuItem Header="Close Others" Tag="{Binding}" Click="CloseOthers_Click" />
-                                                <MenuItem Header="Close to Right" Tag="{Binding}" Click="CloseToRight_Click" />
-                                                <MenuItem Header="Close to Left" Tag="{Binding}" Click="CloseToLeft_Click" />
+                                                <MenuItem Header="Close to the Right" Tag="{Binding}" Click="CloseToRight_Click" />
+                                                <MenuItem Header="Close to the Left" Tag="{Binding}" Click="CloseToLeft_Click" />
                                                 <MenuItem Header="Close Unchanged" Click="CloseUnchanged_Click" />
                                                 <MenuItem Header="Close All" Click="CloseAll_Click" />
                                                 <Separator />
-                                                <MenuItem Header="Save" Tag="{Binding}" Click="SaveTab_Click" />
-                                                <MenuItem Header="Save As..." Tag="{Binding}" Click="SaveTabAs_Click" />
-                                                <MenuItem Header="Save as Note" Tag="{Binding}" Click="SaveAsNote_Tab_Click"
+                                                <MenuItem Header="Save" Tag="{Binding}" Click="SaveTab_Click" InputGesture="Ctrl+S" />
+                                                <MenuItem Header="Save As..." Tag="{Binding}" Click="SaveTabAs_Click" InputGesture="Ctrl+Shift+S" />
+                                                <MenuItem Header="Save As Note" Tag="{Binding}" Click="SaveAsNote_Tab_Click"
                                                           IsVisible="{Binding IsNote, Converter={x:Static BoolConverters.Not}}"/>
                                                 <Separator />
+                                                <MenuItem Header="Copy Path" Tag="{Binding}" Click="CopyPath_Click"
+                                                          IsVisible="{Binding FilePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                                <MenuItem Header="Reveal in File Explorer" Tag="{Binding}" Click="RevealInExplorer_Click"
+                                                          IsVisible="{Binding FilePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                                                 <MenuItem Header="Rename..." Tag="{Binding}" Click="RenameTab_Click" />
                                             </ContextMenu>
                                         </Grid.ContextMenu>
@@ -393,13 +387,14 @@
                                             <!-- External changes warning -->
                                             <Path Data="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3M12 9v4M12 17h.01"
                                                   Stroke="{DynamicResource WarningColor}"
-                                                  StrokeThickness="2"
+                                                  StrokeThickness="1.5"
                                                   StrokeLineCap="Round"
                                                   StrokeJoin="Round"
                                                   Stretch="Uniform"
                                                   Width="12" Height="12"
                                                   VerticalAlignment="Center"
                                                   Margin="0,0,4,0"
+                                                  ToolTip.Tip="Changed by another program"
                                                   IsVisible="{Binding ShowExternalWarning}"/>
                                             <TextBlock Text="{Binding DisplayTitle}"
                                                        VerticalAlignment="Center"
@@ -421,7 +416,8 @@
                                                     VerticalAlignment="Center"
                                                     VerticalContentAlignment="Center"
                                                     HorizontalContentAlignment="Center"
-                                                    ToolTip.Tip="Pin to workspace"
+                                                    ToolTip.Tip="Keep in workspace"
+                                                    AutomationProperties.Name="Keep in workspace"
                                                     Classes="tabpin"
                                                     IsVisible="{Binding #MainWin.IsEphemeralMode}">
                                                 <Path Data="M12 17v5 M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"
@@ -442,13 +438,16 @@
                                                     VerticalAlignment="Center"
                                                     VerticalContentAlignment="Center"
                                                     HorizontalContentAlignment="Center"
+                                                    ToolTip.Tip="Close (Ctrl+W)"
+                                                    AutomationProperties.Name="Close tab"
                                                     Classes="tabclose">
                                                 <Path Data="M18 6 6 18M6 6l12 12"
                                                       Stroke="{DynamicResource TabCloseIconColor}"
-                                                      StrokeThickness="2"
+                                                      StrokeThickness="1.5"
                                                       StrokeLineCap="Round"
+                                                      StrokeJoin="Round"
                                                       Stretch="Uniform"
-                                                      Width="7" Height="7"/>
+                                                      Width="8" Height="8"/>
                                             </Button>
                                         </StackPanel>
                                         <!-- Selection / Note indicator -->
@@ -550,19 +549,21 @@
 
         <!-- Loading Overlay -->
         <Border IsVisible="{Binding IsLoading}"
-                Background="#CC282a36"
+                Background="{DynamicResource OverlayBackground}"
                 ZIndex="1000">
             <StackPanel HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Orientation="Vertical"
                         Spacing="16">
-                <PathIcon Width="32" Height="32"
-                          HorizontalAlignment="Center"
-                          RenderTransformOrigin="0.5,0.5"
-                          Foreground="{DynamicResource TitleBarForeground}"
-                          Data="M12 2v4 M12 18v4 M4.93 4.93l2.83 2.83 M16.24 16.24l2.83 2.83 M2 12h4 M18 12h4 M4.93 19.07l2.83-2.83 M16.24 7.76l2.83-2.83">
-                    <PathIcon.Styles>
-                        <Style Selector="PathIcon">
+                <!-- Lucide "loader" -->
+                <Path Width="32" Height="32"
+                      HorizontalAlignment="Center"
+                      RenderTransformOrigin="0.5,0.5"
+                      Stroke="{DynamicResource TitleBarForeground}"
+                      StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform"
+                      Data="M12 2v4 M12 18v4 M4.93 4.93l2.83 2.83 M16.24 16.24l2.83 2.83 M2 12h4 M18 12h4 M4.93 19.07l2.83-2.83 M16.24 7.76l2.83-2.83">
+                    <Path.Styles>
+                        <Style Selector="Path">
                             <Style.Animations>
                                 <Animation Duration="0:0:1" IterationCount="INFINITE">
                                     <KeyFrame Cue="0%"><Setter Property="RotateTransform.Angle" Value="0"/></KeyFrame>
@@ -570,8 +571,8 @@
                                 </Animation>
                             </Style.Animations>
                         </Style>
-                    </PathIcon.Styles>
-                </PathIcon>
+                    </Path.Styles>
+                </Path>
                 <TextBlock Text="{Binding LoadingText}"
                            HorizontalAlignment="Center"
                            FontSize="14"
@@ -581,14 +582,6 @@
     </Panel>
 
     <Window.Styles>
-        <!-- Close button hover style -->
-        <Style Selector="Button.close:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#ff5555"/>
-        </Style>
-        <!-- Window control button hover -->
-        <Style Selector="StackPanel > Button:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource WindowControlHover}"/>
-        </Style>
         <!-- Tab close button hover -->
         <Style Selector="Button.tabclose:pointerover">
             <Setter Property="Opacity" Value="1"/>

@@ -5,43 +5,25 @@ namespace NoteMode.Views;
 
 public enum FileChangedResult
 {
-    Reload,
+    // First, so closing the window without a choice (default value) keeps the user's edits.
     KeepChanges,
-    Ignore
+    Reload
 }
 
+/// <summary>Asks what to do when a file with unsaved edits is changed on disk by another program.</summary>
 public partial class FileChangedDialog : Window
 {
-    private TextBlock? _messageText;
-    private TextBlock? _conflictText;
-    private Button? _keepChangesButton;
-
     public FileChangedDialog()
     {
         InitializeComponent();
     }
 
-    public FileChangedDialog(string fileName, bool hasLocalChanges) : this()
+    public FileChangedDialog(string fileName) : this()
     {
-        _messageText = this.FindControl<TextBlock>("MessageText");
-        _conflictText = this.FindControl<TextBlock>("ConflictText");
-        _keepChangesButton = this.FindControl<Button>("KeepChangesButton");
-
-        if (_messageText != null)
+        var messageText = this.FindControl<TextBlock>("MessageText");
+        if (messageText != null)
         {
-            _messageText.Text = $"The file \"{fileName}\" has been modified outside of NoteMode.";
-        }
-
-        if (hasLocalChanges)
-        {
-            if (_conflictText != null)
-            {
-                _conflictText.IsVisible = true;
-            }
-            if (_keepChangesButton != null)
-            {
-                _keepChangesButton.IsVisible = true;
-            }
+            messageText.Text = $"\"{fileName}\" has been changed by another program.";
         }
     }
 
@@ -53,10 +35,5 @@ public partial class FileChangedDialog : Window
     private void KeepChanges_Click(object? sender, RoutedEventArgs e)
     {
         Close(FileChangedResult.KeepChanges);
-    }
-
-    private void Ignore_Click(object? sender, RoutedEventArgs e)
-    {
-        Close(FileChangedResult.Ignore);
     }
 }

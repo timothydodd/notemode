@@ -53,6 +53,7 @@
                     <Style Selector=".Markdown_Avalonia_MarkdownViewer ctxt|CCode">
                         <Setter Property="Foreground" Value="{DynamicResource MdCodeForeground}"/>
                         <Setter Property="Background" Value="{DynamicResource MdCodeBackground}"/>
+                        <Setter Property="MonospaceFontFamily" Value="{DynamicResource MonoFont}"/>
                     </Style>
                     <Style Selector=".Markdown_Avalonia_MarkdownViewer Border.CodeBlock">
                         <Setter Property="Background" Value="{DynamicResource MdCodeBackground}"/>
@@ -60,6 +61,7 @@
                     </Style>
                     <Style Selector=".Markdown_Avalonia_MarkdownViewer TextBlock.CodeBlock">
                         <Setter Property="Foreground" Value="{DynamicResource MdCodeForeground}"/>
+                        <Setter Property="FontFamily" Value="{DynamicResource MonoFont}"/>
                     </Style>
 
                     <!-- Links -->

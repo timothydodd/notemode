@@ -68,11 +68,6 @@ public class FileAssociationService
         return result;
     }
 
-    public IEnumerable<string> GetCategories()
-    {
-        return ExtensionCategories.Keys;
-    }
-
     public void SetAssociation(string extension)
     {
         try

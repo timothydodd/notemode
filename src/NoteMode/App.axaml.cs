@@ -16,6 +16,7 @@ public partial class App : Application
 {
     private Styles? _draculaTheme;
     private Styles? _lightTheme;
+    private Styles? _sharedStyles;
     private SyntaxService? _syntaxService;
 
     public static App? Instance => Current as App;
@@ -31,6 +32,7 @@ public partial class App : Application
         // Load both themes
         _draculaTheme = new DraculaTheme();
         _lightTheme = new LightTheme();
+        _sharedStyles = new SharedStyles();
     }
 
     public override void OnFrameworkInitializationCompleted()
@@ -78,8 +80,11 @@ public partial class App : Application
                 viewModel.EnsureInitialTab();
             }
 
+            InstallCrashHandlers(viewModel);
+
             desktop.ShutdownRequested += (s, e) =>
             {
+                viewModel.FlushAllCaches();
                 viewModel.SaveState();
                 fileChangeService.Dispose();
             };
@@ -91,6 +96,37 @@ public partial class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    /// <summary>
+    /// Last line of defence: an unexpected exception is logged to ~/.notemode/error.log and every
+    /// tab's pending edits are written to the cache first, so nothing typed is lost. UI-thread
+    /// errors are then swallowed to keep the editor open; a background-thread crash cannot be.
+    /// </summary>
+    private static void InstallCrashHandlers(MainWindowViewModel viewModel)
+    {
+        void Preserve(Exception? ex)
+        {
+            try
+            {
+                File.AppendAllText(Path.Combine(AppPaths.DataDir, "error.log"),
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] NoteMode {typeof(App).Assembly.GetName().Version}\n{ex}\n\n");
+            }
+            catch { /* nothing more to do */ }
+            try
+            {
+                viewModel.FlushAllCaches();
+                viewModel.SaveState();
+            }
+            catch { /* nothing more to do */ }
+        }
+
+        Avalonia.Threading.Dispatcher.UIThread.UnhandledException += (_, e) =>
+        {
+            Preserve(e.Exception);
+            e.Handled = true;
+        };
+        AppDomain.CurrentDomain.UnhandledException += (_, e) => Preserve(e.ExceptionObject as Exception);
     }
 
     private static void HandleForwardedArgs(
@@ -138,11 +174,20 @@ public partial class App : Application
             Styles.Remove(_lightTheme);
         }
 
-        // Add new theme
+        if (_sharedStyles != null)
+        {
+            Styles.Remove(_sharedStyles);
+        }
+
+        // Add new theme, then the shared structural styles so they take precedence over it
         var newTheme = useLightTheme ? _lightTheme : _draculaTheme;
         if (newTheme != null)
         {
             Styles.Add(newTheme);
+        }
+        if (_sharedStyles != null)
+        {
+            Styles.Add(_sharedStyles);
         }
 
         // Update syntax highlighting colors

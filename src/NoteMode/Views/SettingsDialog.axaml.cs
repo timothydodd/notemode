@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -16,21 +17,33 @@ public partial class SettingsDialog : Window
     {
         InitializeComponent();
         _service = new FileAssociationService();
+        if (this.FindControl<TextBlock>("VersionText") is { } version)
+            version.Text = $"NoteMode {AppInfo.Version}" + (AppInfo.IsPackaged ? " (Microsoft Store)" : "");
         BuildUI();
     }
 
     private void BuildUI()
     {
+        string? unavailable = null;
         if (!_service.IsWindows)
+            unavailable = "File associations can only be set from here on Windows. Use your desktop's \"Open With\" settings instead.";
+        else if (AppInfo.IsPackaged)
+            unavailable = "This copy of NoteMode comes from the Microsoft Store. To open a file type with it, right-click a file > Open with > Choose another app, or use Windows Settings > Apps > Default apps.";
+
+        if (unavailable != null)
         {
-            var notAvailable = this.FindControl<TextBlock>("NotAvailableText");
-            if (notAvailable != null)
+            if (this.FindControl<TextBlock>("NotAvailableText") is { } notAvailable)
+            {
+                notAvailable.Text = unavailable;
                 notAvailable.IsVisible = true;
-
-            var controls = this.FindControl<StackPanel>("AssociationControls");
-            if (controls != null)
-                controls.IsVisible = false;
-
+            }
+            foreach (var name in new[] { "AssociationControls", "AssociationsHint" })
+            {
+                if (this.FindControl<Control>(name) is { } control)
+                    control.IsVisible = false;
+            }
+            if (this.FindControl<Button>("ApplyButton") is { } apply)
+                apply.IsVisible = false;
             return;
         }
 
@@ -91,7 +104,7 @@ public partial class SettingsDialog : Window
 
     private void Apply_Click(object? sender, RoutedEventArgs e)
     {
-        if (!_service.IsWindows) return;
+        if (!_service.IsWindows || AppInfo.IsPackaged) return;
 
         foreach (var (ext, checkBox) in _checkBoxes)
         {
@@ -102,6 +115,15 @@ public partial class SettingsDialog : Window
         }
 
         _service.NotifyShell();
+
+        var count = _checkBoxes.Values.Count(cb => cb.IsChecked == true);
+        if (this.FindControl<TextBlock>("StatusText") is { } status)
+            status.Text = count == 0 ? "File associations removed." : $"Saved: {count} file type{(count == 1 ? "" : "s")} open with NoteMode.";
+    }
+
+    private async void OpenRepository_Click(object? sender, RoutedEventArgs e)
+    {
+        await Launcher.LaunchUriAsync(new System.Uri(AppInfo.RepositoryUrl));
     }
 
     private void Close_Click(object? sender, RoutedEventArgs e)

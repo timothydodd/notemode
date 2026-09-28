@@ -15,7 +15,10 @@ public static class SingleInstanceManager
 {
     // Unique, app-specific names. The leading scope keeps the mutex per-user session.
     private const string MutexName = @"Local\NoteMode-SingleInstance-7b3f1c20";
-    private const string PipeName = "NoteMode-SingleInstance-Pipe-7b3f1c20";
+    // Pipe names are machine-wide, so scope it like the mutex: one per user session. Otherwise a
+    // second signed-in user's instance could not create it and files would go to the wrong user.
+    private static readonly string PipeName =
+        $"NoteMode-SingleInstance-Pipe-7b3f1c20-{Environment.UserName}-{System.Diagnostics.Process.GetCurrentProcess().SessionId}";
 
     private static Mutex? _mutex;
 
@@ -43,7 +46,8 @@ public static class SingleInstanceManager
         try
         {
             using var client = new NamedPipeClientStream(".", PipeName, PipeDirection.Out);
-            client.Connect(2000);
+            // The primary instance starts listening once its window is up; give a cold start time.
+            client.Connect(5000);
             using var writer = new StreamWriter(client) { AutoFlush = true };
             foreach (var arg in args)
             {
@@ -94,7 +98,9 @@ public static class SingleInstanceManager
             }
             catch
             {
-                // Swallow and keep listening; a bad connection shouldn't kill the server.
+                // Keep listening; a bad connection shouldn't kill the server. Pause so a
+                // persistent failure (pipe cannot be created) does not spin the CPU.
+                Thread.Sleep(500);
             }
         }
     }

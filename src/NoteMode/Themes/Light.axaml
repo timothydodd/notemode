@@ -16,6 +16,9 @@
         <SolidColorBrush x:Key="DragGhostBorder" Color="#0078d4"/>
         <SolidColorBrush x:Key="DragGhostForeground" Color="#1e1e1e"/>
         <SolidColorBrush x:Key="WindowControlHover" Color="#d4d4d4"/>
+        <SolidColorBrush x:Key="WindowCloseHover" Color="#e81123"/>
+        <SolidColorBrush x:Key="OverlayBackground" Color="#CCf3f3f3"/>
+        <SolidColorBrush x:Key="SearchMatchForeground" Color="#1e1e1e"/>
         <!-- Dialog resources -->
         <SolidColorBrush x:Key="AccentColor" Color="#0078d4"/>
         <SolidColorBrush x:Key="SecondaryText" Color="#666666"/>
@@ -106,7 +109,7 @@
         <Setter Property="Background" Value="#ffffff"/>
         <Setter Property="Foreground" Value="#1e1e1e"/>
         <Setter Property="LineNumbersForeground" Value="#858585"/>
-        <Setter Property="FontFamily" Value="Consolas"/>
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFont}"/>
         <Setter Property="ShowLineNumbers" Value="True"/>
         <Setter Property="Padding" Value="8,10,10,10"/>
         <Setter Property="SearchResultsBrush" Value="#FFCC66"/>

@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Timers;
 using AvaloniaEdit.Highlighting;
 using NoteMode.Models;
@@ -9,7 +10,7 @@ using NoteMode.Services;
 
 namespace NoteMode.ViewModels;
 
-public class TabViewModel : INotifyPropertyChanged
+public class TabViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly CacheService _cacheService;
     private readonly SyntaxService _syntaxService;
@@ -29,6 +30,9 @@ public class TabViewModel : INotifyPropertyChanged
     private bool _externalChangesAcknowledged;
     private bool _isNote;
     private bool _isPreview;
+    private Encoding _encoding = TextFileIO.DefaultEncoding;
+    private readonly object _cacheLock = new();
+    private bool _disposed;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -62,9 +66,33 @@ public class TabViewModel : INotifyPropertyChanged
 
     public string DisplayTitle => Title;
 
-    public bool ShowDirtyIndicator => IsDirty || HasCachedChanges;
+    public bool ShowDirtyIndicator => HasUnsavedChanges;
+
+    /// <summary>
+    /// True when the tab holds edits that are not in its file (or, for a note, not saved yet).
+    /// Unlike <see cref="IsDirty"/> this is also true for a restored tab whose cached edits have
+    /// not been loaded yet because it has not been shown, so close/save/reload guards use it.
+    /// </summary>
+    public bool HasUnsavedChanges => IsDirty || HasCachedChanges;
 
     public bool ShowExternalWarning => HasExternalChanges;
+
+    /// <summary>The encoding the file was read with, and will be saved with.</summary>
+    public Encoding Encoding
+    {
+        get => _encoding;
+        set
+        {
+            if (!Equals(_encoding, value))
+            {
+                _encoding = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(EncodingName));
+            }
+        }
+    }
+
+    public string EncodingName => TextFileIO.DisplayName(_encoding);
 
     public string? FilePath
     {
@@ -115,6 +143,7 @@ public class TabViewModel : INotifyPropertyChanged
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(DisplayTitle));
                 OnPropertyChanged(nameof(ShowDirtyIndicator));
+                OnPropertyChanged(nameof(HasUnsavedChanges));
             }
         }
     }
@@ -130,6 +159,7 @@ public class TabViewModel : INotifyPropertyChanged
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(DisplayTitle));
                 OnPropertyChanged(nameof(ShowDirtyIndicator));
+                OnPropertyChanged(nameof(HasUnsavedChanges));
             }
         }
     }
@@ -163,8 +193,6 @@ public class TabViewModel : INotifyPropertyChanged
             }
         }
     }
-
-    public string? FileExtension => string.IsNullOrEmpty(FilePath) ? null : Path.GetExtension(FilePath);
 
     public DateTime? LastKnownModified
     {
@@ -243,18 +271,32 @@ public class TabViewModel : INotifyPropertyChanged
         IsDirty = false;
         HasCachedChanges = false;
         if (!_isNote)
-            _cacheService.DeleteCache(Id);
+        {
+            // A pending cache write would bring the edits back as "unsaved" on the next launch.
+            _cacheTimer.Stop();
+            lock (_cacheLock)
+                _cacheService.DeleteCache(Id);
+        }
     }
 
-    public void LoadFromCache()
+    /// <summary>
+    /// Turns a file tab into a note: the content now lives only in the cache, and the tab no longer
+    /// follows (or reloads from) the file it came from. Syntax highlighting is kept.
+    /// </summary>
+    public void ConvertToNote()
     {
-        var cachedContent = _cacheService.LoadCache(Id);
-        if (cachedContent != null)
-        {
-            _content = cachedContent;
-            OnPropertyChanged(nameof(Content));
-            IsDirty = true;
-        }
+        var content = Content; // Load the file (and any cached edits) while this is still a file tab.
+        _cacheTimer.Stop();
+        _isNote = true;
+        _filePath = null;
+        _lastKnownModified = null;
+        _externalChangesAcknowledged = false;
+        HasExternalChanges = false;
+        OnPropertyChanged(nameof(IsNote));
+        OnPropertyChanged(nameof(FilePath));
+        lock (_cacheLock)
+            _cacheService.SaveCache(Id, content);
+        SetOriginalContent(content);
     }
 
     public void EnsureContentLoaded()
@@ -283,9 +325,10 @@ public class TabViewModel : INotifyPropertyChanged
         {
             try
             {
-                var content = File.ReadAllText(_filePath);
+                var (content, encoding) = TextFileIO.Read(_filePath);
                 _originalContent = content;
                 _content = content;
+                _encoding = encoding;
                 _lastKnownModified = File.GetLastWriteTimeUtc(_filePath);
             }
             catch
@@ -299,12 +342,18 @@ public class TabViewModel : INotifyPropertyChanged
         if (cachedContent2 != null)
         {
             _content = cachedContent2;
-            _isDirty = true;
-            _hasCachedChanges = false; // No longer just cached, now loaded
-            OnPropertyChanged(nameof(IsDirty));
-            OnPropertyChanged(nameof(DisplayTitle));
+            _isDirty = _content != _originalContent;
+            if (!_isDirty)
+                _cacheService.DeleteCache(Id); // Stale: the file already has these edits.
         }
-
+        _hasCachedChanges = false; // Loaded now; IsDirty carries it from here.
+        OnPropertyChanged(nameof(IsDirty));
+        OnPropertyChanged(nameof(HasCachedChanges));
+        OnPropertyChanged(nameof(HasUnsavedChanges));
+        OnPropertyChanged(nameof(ShowDirtyIndicator));
+        OnPropertyChanged(nameof(DisplayTitle));
+        OnPropertyChanged(nameof(Encoding));
+        OnPropertyChanged(nameof(EncodingName));
         OnPropertyChanged(nameof(Content));
     }
 
@@ -350,29 +399,22 @@ public class TabViewModel : INotifyPropertyChanged
         return vm;
     }
 
-    public bool CheckForExternalChanges()
+    /// <summary>
+    /// True while the file on disk should be polled for changes by another program: a file tab
+    /// that is not already flagged (a prompt may be open) and whose user has not chosen to keep
+    /// their version.
+    /// </summary>
+    public bool IsWatchingForExternalChanges =>
+        !_isNote && !string.IsNullOrEmpty(_filePath) && _lastKnownModified.HasValue
+        && !_externalChangesAcknowledged && !_hasExternalChanges;
+
+    /// <summary>Flags the tab when the file's last-write time is newer than what we loaded or saved.</summary>
+    public bool ReportDiskTimestamp(DateTime lastWriteUtc)
     {
-        if (string.IsNullOrEmpty(_filePath) || !File.Exists(_filePath))
+        if (!IsWatchingForExternalChanges || lastWriteUtc <= _lastKnownModified!.Value)
             return false;
-
-        if (_externalChangesAcknowledged)
-            return false;
-
-        try
-        {
-            var currentModified = File.GetLastWriteTimeUtc(_filePath);
-            if (_lastKnownModified.HasValue && currentModified > _lastKnownModified.Value)
-            {
-                HasExternalChanges = true;
-                return true;
-            }
-        }
-        catch
-        {
-            // Ignore file access errors
-        }
-
-        return false;
+        HasExternalChanges = true;
+        return true;
     }
 
     public void AcknowledgeExternalChanges()
@@ -383,25 +425,30 @@ public class TabViewModel : INotifyPropertyChanged
 
     public void ReloadFromDisk()
     {
-        if (string.IsNullOrEmpty(_filePath) || !File.Exists(_filePath))
+        if (_isNote || string.IsNullOrEmpty(_filePath) || !File.Exists(_filePath))
             return;
 
         try
         {
-            var content = File.ReadAllText(_filePath);
+            var (content, encoding) = TextFileIO.Read(_filePath);
+            _cacheTimer.Stop();
+            _isContentLoaded = true;
             _lastKnownModified = File.GetLastWriteTimeUtc(_filePath);
             _originalContent = content;
             _content = content;
+            Encoding = encoding;
             _externalChangesAcknowledged = false;
             HasExternalChanges = false;
             IsDirty = false;
             HasCachedChanges = false;
-            _cacheService.DeleteCache(Id);
+            lock (_cacheLock)
+                _cacheService.DeleteCache(Id);
             OnPropertyChanged(nameof(Content));
         }
         catch
         {
-            // Ignore file access errors
+            // The file is mid-write or locked; the next check will try again.
+            HasExternalChanges = false;
         }
     }
 
@@ -429,16 +476,43 @@ public class TabViewModel : INotifyPropertyChanged
 
     private void ScheduleCacheSave()
     {
+        if (_disposed)
+            return;
         _cacheTimer.Stop();
         _cacheTimer.Start();
     }
 
-    private void OnCacheTimerElapsed(object? sender, ElapsedEventArgs e)
+    private void OnCacheTimerElapsed(object? sender, ElapsedEventArgs e) => WriteCache();
+
+    /// <summary>Writes any pending edits to the cache now (on exit, so the last keystrokes survive).</summary>
+    public void FlushCache()
     {
-        if (_isNote || IsDirty)
+        if (!_cacheTimer.Enabled)
+            return;
+        _cacheTimer.Stop();
+        WriteCache();
+    }
+
+    private void WriteCache()
+    {
+        lock (_cacheLock)
         {
-            _cacheService.SaveCache(Id, _content);
+            if (_disposed)
+                return; // Closed: a late timer tick must not recreate the deleted cache.
+            if (_isNote || _isDirty)
+                _cacheService.SaveCache(Id, _content);
+            else if (_isContentLoaded)
+                _cacheService.DeleteCache(Id); // Edited back to the file's content.
         }
+    }
+
+    /// <summary>Stops cache writes for a closed tab. Callers delete the cache afterwards if they want it gone.</summary>
+    public void Dispose()
+    {
+        lock (_cacheLock)
+            _disposed = true;
+        _cacheTimer.Stop();
+        _cacheTimer.Dispose();
     }
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)

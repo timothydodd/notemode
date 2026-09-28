@@ -11,12 +11,8 @@ public class StateService
 
     public StateService()
     {
-        var appDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            ".notemode"
-        );
-        Directory.CreateDirectory(appDir);
-        _stateFilePath = Path.Combine(appDir, "state.json");
+        Directory.CreateDirectory(AppPaths.DataDir);
+        _stateFilePath = Path.Combine(AppPaths.DataDir, "state.json");
     }
 
     public AppState LoadState()
@@ -42,7 +38,7 @@ public class StateService
         try
         {
             var json = JsonSerializer.Serialize(state, AppJsonContext.Default.AppState);
-            File.WriteAllText(_stateFilePath, json);
+            AppPaths.WriteAllTextAtomic(_stateFilePath, json);
         }
         catch (Exception)
         {

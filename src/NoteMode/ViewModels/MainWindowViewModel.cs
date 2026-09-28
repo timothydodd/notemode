@@ -31,6 +31,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private StatusBarViewModel _statusBar = new();
     private bool _isEphemeralMode;
     private readonly System.Collections.Generic.List<TabViewModel> _pendingWorkspace = new();
+    private Guid? _pendingActiveTabId;
 
     private bool _isLoading;
     private string _loadingText = "Loading…";
@@ -74,6 +75,11 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public event EventHandler<TabViewModel>? ExternalChangeDetected;
     public event EventHandler<bool>? ThemeChanged;
 
+    /// <summary>A file could not be opened or saved; the view shows the message.</summary>
+    public event EventHandler<(string Title, string Message)>? ErrorOccurred;
+
+    private void ReportError(string title, string message) => ErrorOccurred?.Invoke(this, (title, message));
+
     public MainWindowViewModel(StateService stateService, CacheService cacheService, SyntaxService syntaxService, FileChangeService fileChangeService, NoteService noteService)
     {
         _stateService = stateService;
@@ -85,12 +91,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         Tabs = new ObservableCollection<TabViewModel>();
 
         NewTabCommand = new RelayCommand(_ => NewTab());
-        CloseTabCommand = new RelayCommand(tab => CloseTab(tab as TabViewModel));
-        CloseOthersCommand = new RelayCommand(tab => CloseOthers(tab as TabViewModel));
-        CloseToRightCommand = new RelayCommand(tab => CloseToRight(tab as TabViewModel));
-        CloseToLeftCommand = new RelayCommand(tab => CloseToLeft(tab as TabViewModel));
         CloseUnchangedCommand = new RelayCommand(_ => CloseUnchanged());
-        CloseAllCommand = new RelayCommand(_ => CloseAll());
         SaveAllCommand = new RelayCommand(_ => SaveAll());
         ToggleWhitespaceCommand = new RelayCommand(_ => ShowWhitespace = !ShowWhitespace);
         ToggleLineNumbersCommand = new RelayCommand(_ => ShowLineNumbers = !ShowLineNumbers);
@@ -98,7 +99,6 @@ public class MainWindowViewModel : INotifyPropertyChanged
         ToggleSearchPanelCommand = new RelayCommand(_ => IsSearchPanelOpen = !IsSearchPanelOpen);
         ToggleNotesPanelCommand = new RelayCommand(_ => IsNotesPanelOpen = !IsNotesPanelOpen);
         ToggleExplorerPanelCommand = new RelayCommand(_ => IsExplorerPanelOpen = !IsExplorerPanelOpen);
-        SaveAsNoteCommand = new RelayCommand(_ => SaveAsNote());
 
         LoadState();
 
@@ -302,12 +302,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public NoteService NoteService => _noteService;
 
     public ICommand NewTabCommand { get; }
-    public ICommand CloseTabCommand { get; }
-    public ICommand CloseOthersCommand { get; }
-    public ICommand CloseToRightCommand { get; }
-    public ICommand CloseToLeftCommand { get; }
     public ICommand CloseUnchangedCommand { get; }
-    public ICommand CloseAllCommand { get; }
     public ICommand SaveAllCommand { get; }
     public ICommand ToggleWhitespaceCommand { get; }
     public ICommand ToggleLineNumbersCommand { get; }
@@ -315,7 +310,6 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public ICommand ToggleSearchPanelCommand { get; }
     public ICommand ToggleNotesPanelCommand { get; }
     public ICommand ToggleExplorerPanelCommand { get; }
-    public ICommand SaveAsNoteCommand { get; }
 
     public StatusBarViewModel StatusBar => _statusBar;
 
@@ -351,8 +345,11 @@ public class MainWindowViewModel : INotifyPropertyChanged
         return $"note{next}";
     }
 
-    public TabViewModel OpenFile(string filePath)
+    /// <summary>Opens a file in a new tab, or selects the tab it is already open in. Null if it cannot be read.</summary>
+    public TabViewModel? OpenFile(string filePath)
     {
+        filePath = Path.GetFullPath(filePath);
+
         // Check if file is already open
         var existingTab = Tabs.FirstOrDefault(t =>
             !string.IsNullOrEmpty(t.FilePath) &&
@@ -364,22 +361,27 @@ public class MainWindowViewModel : INotifyPropertyChanged
             return existingTab;
         }
 
+        string content;
+        System.Text.Encoding encoding;
+        try
+        {
+            (content, encoding) = TextFileIO.Read(filePath);
+        }
+        catch (Exception ex)
+        {
+            // No tab for a file we could not read: an empty tab bound to it would overwrite it on save.
+            ReportError("Can't open file", $"{Path.GetFileName(filePath)} could not be opened.\n\n{ex.Message}");
+            return null;
+        }
+
         var tab = new TabViewModel(_cacheService, _syntaxService)
         {
             FilePath = filePath,
-            Title = Path.GetFileName(filePath)
+            Title = Path.GetFileName(filePath),
+            Encoding = encoding
         };
-
-        try
-        {
-            var content = File.ReadAllText(filePath);
-            tab.SetOriginalContent(content);
-            tab.LastKnownModified = File.GetLastWriteTimeUtc(filePath);
-        }
-        catch (Exception)
-        {
-            // If file can't be read, leave content empty
-        }
+        tab.SetOriginalContent(content);
+        tab.LastKnownModified = File.GetLastWriteTimeUtc(filePath);
 
         Tabs.Add(tab);
         SelectedTab = tab;
@@ -388,39 +390,54 @@ public class MainWindowViewModel : INotifyPropertyChanged
         return tab;
     }
 
-    public void SaveFile(TabViewModel tab, string? filePath = null)
+    /// <summary>
+    /// Saves a tab: a note to its cache, a file to its path, or (with <paramref name="filePath"/>)
+    /// to a new path. Save As on a note exports a copy and the tab stays a note. Returns false, after
+    /// reporting why, when nothing was written; the tab then keeps its unsaved changes.
+    /// </summary>
+    public bool SaveFile(TabViewModel tab, string? filePath = null)
     {
-        if (tab.IsNote && filePath == null)
+        if (tab.IsNote)
         {
-            // Save note to cache
+            if (filePath != null)
+                return WriteFile(filePath, tab.Content, TextFileIO.DefaultEncoding);
+
             _cacheService.SaveCache(tab.Id, tab.Content);
             tab.MarkAsSaved();
             _noteService.UpdateNote(tab.Id, tab.Title, tab.SyntaxName);
             SaveState();
-            return;
+            return true;
         }
+
+        var target = filePath ?? tab.FilePath;
+        if (string.IsNullOrEmpty(target))
+            return false;
+
+        if (!WriteFile(target, tab.Content, tab.Encoding))
+            return false;
 
         if (filePath != null)
         {
             tab.FilePath = filePath;
             tab.Title = Path.GetFileName(filePath);
         }
+        tab.LastKnownModified = File.GetLastWriteTimeUtc(target);
+        tab.MarkAsSaved();
+        SaveState();
+        return true;
+    }
 
-        if (string.IsNullOrEmpty(tab.FilePath))
-        {
-            return;
-        }
-
+    private bool WriteFile(string path, string content, System.Text.Encoding encoding)
+    {
         try
         {
-            File.WriteAllText(tab.FilePath, tab.Content);
-            tab.LastKnownModified = File.GetLastWriteTimeUtc(tab.FilePath);
-            tab.MarkAsSaved();
-            SaveState();
+            TextFileIO.Write(path, content, encoding);
+            return true;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Handle save error (could show dialog in view)
+            ReportError("Can't save file", $"{Path.GetFileName(path)} could not be saved. Your changes are still in NoteMode.\n\n{ex.Message}");
+            return false;
         }
     }
 
@@ -430,6 +447,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
         var index = Tabs.IndexOf(tab);
         Tabs.Remove(tab);
+        tab.Dispose();
 
         // Select adjacent tab
         if (Tabs.Count > 0)
@@ -448,81 +466,17 @@ public class MainWindowViewModel : INotifyPropertyChanged
         SaveState();
     }
 
-    public void MoveTab(TabViewModel sourceTab, TabViewModel targetTab)
-    {
-        var sourceIndex = Tabs.IndexOf(sourceTab);
-        var targetIndex = Tabs.IndexOf(targetTab);
-
-        if (sourceIndex < 0 || targetIndex < 0 || sourceIndex == targetIndex)
-            return;
-
-        Tabs.Move(sourceIndex, targetIndex);
-        SaveState();
-    }
-
-    public void CloseOthers(TabViewModel? tab)
-    {
-        if (tab == null) return;
-
-        var tabsToClose = Tabs.Where(t => t != tab).ToList();
-        foreach (var t in tabsToClose)
-        {
-            if (!t.IsNote)
-                _cacheService.DeleteCache(t.Id);
-            Tabs.Remove(t);
-        }
-
-        SelectedTab = tab;
-        SaveState();
-    }
-
-    public void CloseToRight(TabViewModel? tab)
-    {
-        if (tab == null) return;
-
-        var index = Tabs.IndexOf(tab);
-        if (index < 0) return;
-
-        var tabsToClose = Tabs.Skip(index + 1).ToList();
-        foreach (var t in tabsToClose)
-        {
-            if (!t.IsNote)
-                _cacheService.DeleteCache(t.Id);
-            Tabs.Remove(t);
-        }
-
-        SaveState();
-    }
-
-    public void CloseToLeft(TabViewModel? tab)
-    {
-        if (tab == null) return;
-
-        var index = Tabs.IndexOf(tab);
-        if (index <= 0) return;
-
-        var tabsToClose = Tabs.Take(index).ToList();
-        foreach (var t in tabsToClose)
-        {
-            if (!t.IsNote)
-                _cacheService.DeleteCache(t.Id);
-            Tabs.Remove(t);
-        }
-
-        SelectedTab = tab;
-        SaveState();
-    }
-
     public void CloseUnchanged()
     {
-        var tabsToClose = Tabs.Where(t => !t.IsDirty).ToList();
+        var tabsToClose = Tabs.Where(t => !t.HasUnsavedChanges).ToList();
         var currentSelected = SelectedTab;
 
         foreach (var t in tabsToClose)
         {
+            Tabs.Remove(t);
+            t.Dispose();
             if (!t.IsNote)
                 _cacheService.DeleteCache(t.Id);
-            Tabs.Remove(t);
         }
 
         // Try to keep current selection, or select first remaining tab
@@ -545,49 +499,22 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public void RenameTab(TabViewModel tab, string newTitle)
     {
         tab.Title = newTitle;
+        if (tab.IsNote)
+            _noteService.UpdateNote(tab.Id, tab.Title, tab.SyntaxName);
         SaveState();
     }
 
-    public void CloseAll()
-    {
-        var tabsToClose = Tabs.ToList();
-        foreach (var tab in tabsToClose)
-        {
-            if (!tab.IsNote)
-                _cacheService.DeleteCache(tab.Id);
-            Tabs.Remove(tab);
-        }
-
-        SelectedTab = null;
-        SaveState();
-    }
-
+    /// <summary>Saves every tab with unsaved changes that has somewhere to go (untitled tabs are skipped).</summary>
     public void SaveAll()
     {
-        foreach (var tab in Tabs)
+        foreach (var tab in Tabs.ToList())
         {
+            if (!tab.HasUnsavedChanges || (!tab.IsNote && string.IsNullOrEmpty(tab.FilePath)))
+                continue;
+            // A restored tab's cached edits count as IsDirty once loaded.
+            tab.EnsureContentLoaded();
             if (tab.IsDirty)
-            {
-                if (tab.IsNote)
-                {
-                    _cacheService.SaveCache(tab.Id, tab.Content);
-                    tab.MarkAsSaved();
-                    _noteService.UpdateNote(tab.Id, tab.Title, tab.SyntaxName);
-                }
-                else if (!string.IsNullOrEmpty(tab.FilePath))
-                {
-                    try
-                    {
-                        File.WriteAllText(tab.FilePath, tab.Content);
-                        tab.LastKnownModified = File.GetLastWriteTimeUtc(tab.FilePath);
-                        tab.MarkAsSaved();
-                    }
-                    catch (Exception)
-                    {
-                        // Skip tabs that fail to save
-                    }
-                }
-            }
+                SaveFile(tab);
         }
 
         SaveState();
@@ -598,10 +525,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
         tab ??= SelectedTab;
         if (tab == null || tab.IsNote) return;
 
-        tab.IsNote = true;
-        _cacheService.SaveCache(tab.Id, tab.Content);
+        tab.ConvertToNote();
         _noteService.CreateNote(tab.Id, tab.Title, tab.SyntaxName);
-        tab.SetOriginalContent(tab.Content);
         SaveState();
     }
 
@@ -635,6 +560,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         if (openTab != null)
         {
             Tabs.Remove(openTab);
+            openTab.Dispose();
             if (SelectedTab == openTab)
                 SelectedTab = Tabs.Count > 0 ? Tabs[0] : null;
         }
@@ -654,6 +580,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
             if (openTab != null)
             {
                 Tabs.Remove(openTab);
+                openTab.Dispose();
             }
             _cacheService.DeleteCache(noteId);
         }
@@ -678,6 +605,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         _pendingWorkspace.Clear();
         foreach (var t in Tabs)
             _pendingWorkspace.Add(t);
+        _pendingActiveTabId = SelectedTab?.Id;
 
         Tabs.Clear();
         SelectedTab = null;
@@ -721,16 +649,37 @@ public class MainWindowViewModel : INotifyPropertyChanged
         SaveState();
     }
 
+    /// <summary>Writes pending edits of every open tab to the cache (on exit).</summary>
+    public void FlushAllCaches()
+    {
+        foreach (var tab in Tabs)
+            tab.FlushCache();
+    }
+
     public void SaveState()
     {
-        // Don't overwrite persisted workspace while we're showing only an ephemeral file.
+        var tabs = Tabs.ToList();
+        var activeTabId = SelectedTab?.Id;
         if (_isEphemeralMode)
-            return;
+        {
+            // Persist the held-back workspace, not the ephemeral view, plus any ephemeral tab with
+            // unsaved edits so closing the window never loses them.
+            var unsaved = Tabs.Where(t => t.HasUnsavedChanges).ToList();
+            var unsavedPaths = unsaved
+                .Where(t => !string.IsNullOrEmpty(t.FilePath))
+                .Select(t => t.FilePath!)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            tabs = _pendingWorkspace
+                .Where(t => string.IsNullOrEmpty(t.FilePath) || !unsavedPaths.Contains(t.FilePath))
+                .Concat(unsaved)
+                .ToList();
+            activeTabId = unsaved.FirstOrDefault()?.Id ?? _pendingActiveTabId;
+        }
 
         var state = new AppState
         {
-            Tabs = Tabs.Select((t, i) => t.ToState(i)).ToList(),
-            ActiveTabId = SelectedTab?.Id,
+            Tabs = tabs.Select((t, i) => t.ToState(i)).ToList(),
+            ActiveTabId = activeTabId,
             FontSize = _fontSize,
             ShowWhitespace = _showWhitespace,
             ShowLineNumbers = _showLineNumbers,

@@ -48,12 +48,25 @@ public partial class FindReplaceDialog : Window
         }
     }
 
+    /// <summary>The editor this dialog searches.</summary>
+    public TextEditor? Editor => _editor;
+
+    /// <summary>When true, the Replace box gets focus when the dialog opens (Ctrl+H).</summary>
+    public bool FocusReplace { get; set; }
+
     protected override void OnOpened(EventArgs e)
     {
         base.OnOpened(e);
-        _findTextBox?.Focus();
-        _findTextBox?.SelectAll();
+        FocusField(FocusReplace);
         UpdateMatchCount();
+    }
+
+    /// <summary>Focuses the Find box (Ctrl+F) or the Replace box (Ctrl+H), e.g. when reopened.</summary>
+    public void FocusField(bool replace)
+    {
+        var box = replace && !string.IsNullOrEmpty(_findTextBox?.Text) ? _replaceTextBox : _findTextBox;
+        box?.Focus();
+        box?.SelectAll();
     }
 
     protected override void OnClosed(EventArgs e)

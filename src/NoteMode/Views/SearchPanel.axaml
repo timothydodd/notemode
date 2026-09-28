@@ -9,43 +9,14 @@
             BorderThickness="0,1,1,0">
         <DockPanel>
             <!-- Header bar -->
-            <Border DockPanel.Dock="Top"
-                    Background="{DynamicResource SearchPanelHeaderBackground}"
-                    BorderBrush="{DynamicResource SearchPanelBorder}"
-                    BorderThickness="0,0,0,1"
-                    Padding="10,8">
+            <Border DockPanel.Dock="Top" Classes="panelHeader">
                 <Grid ColumnDefinitions="*,Auto">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <Path Data="M19 11a8 8 0 1 0-16 0 8 8 0 0 0 16 0zM21 21l-4.34-4.34"
-                              Stroke="{DynamicResource SearchPanelHeaderText}"
-                              StrokeThickness="1.5"
-                              StrokeLineCap="Round"
-                              StrokeJoin="Round"
-                              Stretch="Uniform"
-                              Width="13" Height="13"
-                              Opacity="0.7"/>
-                        <TextBlock Text="SEARCH"
-                                   FontSize="11"
-                                   FontWeight="SemiBold"
-                                   Foreground="{DynamicResource SearchPanelHeaderText}"
-                                   VerticalAlignment="Center"
-                                   Opacity="0.7"/>
+                        <Path Classes="panelIcon" Data="M19 11a8 8 0 1 0-16 0 8 8 0 0 0 16 0zM21 21l-4.34-4.34"/>
+                        <TextBlock Classes="panelTitle" Text="SEARCH"/>
                     </StackPanel>
-                    <Button Grid.Column="1"
-                            Click="CloseButton_Click"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Padding="0"
-                            Width="20" Height="20"
-                            VerticalContentAlignment="Center"
-                            HorizontalContentAlignment="Center">
-                        <Path Data="M18 6 6 18M6 6l12 12"
-                              Stroke="{DynamicResource SearchPanelHeaderText}"
-                              StrokeThickness="1.5"
-                              StrokeLineCap="Round"
-                              StrokeJoin="Round"
-                              Stretch="Uniform"
-                              Width="12" Height="12"/>
+                    <Button Grid.Column="1" Classes="panelClose" Click="CloseButton_Click">
+                        <Path/>
                     </Button>
                 </Grid>
             </Border>
@@ -54,7 +25,7 @@
             <StackPanel DockPanel.Dock="Top" Margin="10,8,10,0" Spacing="6">
                 <TextBox x:Name="SearchTextBox"
                          Text="{Binding SearchText}"
-                         Watermark="Search"
+                         PlaceholderText="Search"
                          FontSize="12"/>
 
                 <!-- Options row -->
@@ -170,22 +141,22 @@
                                            Width="36"
                                            TextAlignment="Right"
                                            Margin="0,0,8,0"
-                                           FontFamily="Consolas"/>
+                                           FontFamily="{DynamicResource MonoFont}"/>
                                 <TextBlock Text="{Binding PreviewBefore}"
                                            FontSize="11"
-                                           FontFamily="Consolas"
+                                           FontFamily="{DynamicResource MonoFont}"
                                            TextTrimming="CharacterEllipsis"/>
                                 <Border Background="{DynamicResource SearchMatchHighlight}"
                                         CornerRadius="2"
                                         Padding="0">
                                     <TextBlock Text="{Binding MatchText}"
                                                FontSize="11"
-                                               FontFamily="Consolas"
-                                               Foreground="#282a36"/>
+                                               FontFamily="{DynamicResource MonoFont}"
+                                               Foreground="{DynamicResource SearchMatchForeground}"/>
                                 </Border>
                                 <TextBlock Text="{Binding PreviewAfter}"
                                            FontSize="11"
-                                           FontFamily="Consolas"
+                                           FontFamily="{DynamicResource MonoFont}"
                                            TextTrimming="CharacterEllipsis"
                                            MaxWidth="300"/>
                             </StackPanel>

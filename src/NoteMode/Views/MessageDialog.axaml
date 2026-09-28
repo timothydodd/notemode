@@ -1,0 +1,27 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="NoteMode.Views.MessageDialog"
+        Title="NoteMode"
+        Width="420"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        ShowInTaskbar="False">
+
+    <DockPanel Margin="16">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="OK" Click="Ok_Click" Classes="primary" IsDefault="True" IsCancel="True" MinWidth="72"
+                    HorizontalContentAlignment="Center"/>
+        </StackPanel>
+        <Grid ColumnDefinitions="Auto,*">
+            <!-- Lucide "circle-alert" -->
+            <Path Data="M2 12a10 10 0 1 0 20 0a10 10 0 1 0-20 0M12 8v4M12 16h.01"
+                  Stroke="{DynamicResource WarningColor}"
+                  StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform"
+                  Width="22" Height="22"
+                  VerticalAlignment="Top"
+                  Margin="0,0,12,0"/>
+            <SelectableTextBlock x:Name="MessageText" Grid.Column="1" TextWrapping="Wrap"/>
+        </Grid>
+    </DockPanel>
+</Window>

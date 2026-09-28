@@ -20,14 +20,25 @@ dotnet run --project NoteMode
 dotnet build -c Release
 ```
 
-Solution file: `src/NoteMode.sln`
+Solution file: `src/NoteMode.sln` (the app plus `tools/NoteMode.UiPreview`)
+
+```bash
+# Render every window/dialog headlessly in both themes (no Windows needed) to check UI changes
+dotnet run --project tools/NoteMode.UiPreview -- <outDir>
+# Marketing screenshots / Store hero / MSIX logo images
+dotnet run --project tools/NoteMode.UiPreview -- --store docs/store/screenshots
+dotnet run --project tools/NoteMode.UiPreview -- --hero docs/store
+dotnet run --project tools/NoteMode.UiPreview -- --assets packaging/Assets
+```
+
+The tool sets `NOTEMODE_HOME` to a temp folder, so it never touches the real `~/.notemode`.
 
 ## Architecture
 
 **MVVM Pattern** with manual dependency injection:
 
 - **Models/** - Data structures for state serialization (`AppState`, `TabState`)
-- **Services/** - Business logic: `StateService` (JSON persistence), `CacheService` (tab content caching), `SyntaxService` (language detection and highlighting)
+- **Services/** - Business logic: `StateService` (JSON persistence), `CacheService` (tab content caching), `NoteService` (notes index), `SyntaxService` (language detection and highlighting), `TextFileIO` (encoding-preserving reads, safe replace-on-save), `FileChangeService` (polls open files for external changes), `AppPaths` (data folder, atomic writes), `AppInfo` (version, MSIX detection)
 - **ViewModels/** - Presentation logic with `INotifyPropertyChanged` bindings and `RelayCommand` for commands
 - **Views/** - Avalonia XAML (`.axaml`) UI definitions
 
@@ -37,15 +48,23 @@ User Input → MainWindow Events → MainWindowViewModel Commands
   → Services → TabViewModel State → EditorView UI
 ```
 
-**State Persistence:**
+**State Persistence** (folder overridable with `NOTEMODE_HOME`):
 - App state: `~/.notemode/state.json` (window size, font size, active tab, tabs list)
-- Tab content cache: `~/.notemode/cache/{TabId}.cache` (auto-saved every 500ms)
+- Notes index: `~/.notemode/notes.json`
+- Tab content cache: `~/.notemode/cache/{TabId}.cache` (auto-saved 500ms after typing; flushed on exit and on a crash)
+- Crash log: `~/.notemode/error.log`
+
+**Data-safety rules** (users rely on the session never losing text):
+- Guards that decide whether a tab can be closed/reloaded use `HasUnsavedChanges` (or call `EnsureContentLoaded()` first): a restored tab that hasn't been shown has cached edits but `IsDirty == false` until loaded.
+- `SaveFile` returns false (and raises `ErrorOccurred`) on failure; never close a tab or delete its cache after a failed save.
+- Dialog result enums put the safe choice first (`Cancel`, `KeepChanges`), because closing a dialog with its X returns `default`.
+- File I/O for user files goes through `TextFileIO` so the original encoding is kept.
 
 ## Key Dependencies
 
-- Avalonia 11.3.x - Cross-platform UI framework
-- Avalonia.AvaloniaEdit 11.4.0 - Text editor component
-- ReactiveUI.Avalonia - Reactive extensions for MVVM
+- Avalonia 12.1.x - Cross-platform UI framework
+- Avalonia.AvaloniaEdit 12.0.0 - Text editor component
+- Markdown.Avalonia.Tight - Markdown preview
 
 ## Entry Points
 
@@ -62,9 +81,18 @@ Each tab (`TabViewModel`) has:
 
 Smart tab selection: When closing a tab, selects next tab to the right, or previous if rightmost.
 
+## Packaging and releases
+
+Same setup as the RoboMouse repo (see `docs/building.md`):
+- `packaging/installer/NoteMode.iss` (Inno Setup 6) built by `packaging/Build-Installer.ps1`; smoke test `packaging/Test-Installer.ps1`
+- `packaging/Build-Msix.ps1` + `packaging/Package.appxmanifest` for the Microsoft Store (file types declared in the manifest; Settings hides registry associations when `AppInfo.IsPackaged`)
+- `.github/workflows/build.yml`: build on push/PR; `v*` tags build the installer + MSIX, sign with Azure Trusted Signing (when configured), smoke-test the installer, then publish the GitHub release. The version comes from the tag; bump `<Version>` in `NoteMode.csproj` when tagging.
+
 ## Theming
 
-Uses Dracula color scheme defined in `Themes/Dracula.axaml`:
+Two themes, `Themes/Dracula.axaml` and `Themes/Light.axaml`, swapped at runtime by `App.ApplyTheme`. Theme-independent structural styles live in `Themes/Shared.axaml` (window title-bar buttons `Button.winctl`, side panel headers `Border.panelHeader` / `TextBlock.panelTitle` / `Path.panelIcon` / `Button.panelClose`, `TextBox.compact`, `Button.statusItem`) and are re-added after the theme so they win. Colors always come from theme resources (`{DynamicResource ...}`); add any new color to **both** themes. The editor/code font is the `MonoFont` resource, resolved at startup to one installed font (never use a font-family fallback list: the Markdown preview crashes on one whose first family fails to load).
+
+Dracula colors:
 - Background: `#282a36`, Title bar: `#21222c`, Foreground: `#f8f8f2`
 - Syntax colors set in `SyntaxService.cs` (comments gray, strings yellow, keywords pink, etc.)
 
@@ -80,7 +108,8 @@ Uses Dracula color scheme defined in `Themes/Dracula.axaml`:
 
 ## Keyboard Shortcuts
 
-Defined in `MainWindow.axaml`:
+`MainWindow.axaml` KeyBindings, plus `MainWindow.OnPreviewKeyDown` (tunnel) for keys the editor would otherwise swallow (Ctrl+S, Ctrl+Shift+S, Ctrl+Shift+F, Ctrl+E, Ctrl+Shift+V, Ctrl+Shift+N) - define each shortcut in one place only:
 - `Ctrl+N` New tab, `Ctrl+O` Open, `Ctrl+S` Save, `Ctrl+Shift+S` Save As
 - `Ctrl+Shift+A` Save All, `Ctrl+W` Close tab, `Ctrl+Shift+W` Toggle whitespace
+- `Ctrl+F` Find, `Ctrl+H` Replace, `Ctrl+Shift+F` Search panel, `Ctrl+E` Explorer, `Ctrl+Shift+N` Notes, `Ctrl+Shift+V` Markdown preview
 - `Ctrl+Scroll` Font size (6-72pt, handled in `EditorView.axaml.cs`)

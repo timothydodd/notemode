@@ -6,7 +6,7 @@
         x:DataType="views:FindReplaceDialog"
         Title="Find and Replace"
         Width="450"
-        Height="220"
+        SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         ShowInTaskbar="False">

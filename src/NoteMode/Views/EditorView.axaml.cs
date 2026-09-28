@@ -367,21 +367,32 @@ public partial class EditorView : UserControl
         var showOverlay = content.Length > LargeContentThreshold && _mainViewModel != null;
         if (showOverlay)
         {
+            var viewModel = _viewModel;
             _mainViewModel!.LoadingText = $"Loading {_viewModel.Title}…";
             _mainViewModel.IsLoading = true;
             // Yield so the overlay actually paints before the UI thread blocks on the assignment.
             await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Render);
+
+            // This view is reused across tabs. If another tab was selected meanwhile, its own
+            // update has run (or will); putting this text in the editor now would hand it to the
+            // wrong tab on the next keystroke.
+            if (_viewModel != viewModel || _editor == null)
+            {
+                _mainViewModel.IsLoading = false;
+                return;
+            }
+            content = viewModel.Content;
         }
 
         try
         {
             _isUpdatingFromViewModel = true;
             _editor.Text = content;
-            _isUpdatingFromViewModel = false;
             UpdateStatusBarLineEnding();
         }
         finally
         {
+            _isUpdatingFromViewModel = false;
             if (showOverlay)
                 _mainViewModel!.IsLoading = false;
         }

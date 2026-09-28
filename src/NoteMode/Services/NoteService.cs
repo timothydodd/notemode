@@ -14,12 +14,8 @@ public class NoteService
 
     public NoteService()
     {
-        var appDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            ".notemode"
-        );
-        Directory.CreateDirectory(appDir);
-        _indexPath = Path.Combine(appDir, "notes.json");
+        Directory.CreateDirectory(AppPaths.DataDir);
+        _indexPath = Path.Combine(AppPaths.DataDir, "notes.json");
         _index = LoadIndex();
     }
 
@@ -46,7 +42,7 @@ public class NoteService
         try
         {
             var json = JsonSerializer.Serialize(_index, AppJsonContext.Default.NotesIndex);
-            File.WriteAllText(_indexPath, json);
+            AppPaths.WriteAllTextAtomic(_indexPath, json);
         }
         catch
         {

@@ -3,7 +3,7 @@
         x:Class="NoteMode.Views.RenameDialog"
         Title="Rename Tab"
         Width="350"
-        Height="130"
+        SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         ShowInTaskbar="False">
@@ -12,7 +12,7 @@
         <TextBlock Text="Enter new name:"/>
         <TextBox x:Name="NameTextBox"/>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-            <Button Content="Cancel" Click="Cancel_Click"/>
+            <Button Content="Cancel" Click="Cancel_Click" IsCancel="True"/>
             <Button Content="OK" Click="OK_Click" Classes="primary" IsDefault="True"/>
         </StackPanel>
     </StackPanel>

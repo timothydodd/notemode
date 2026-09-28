@@ -7,7 +7,6 @@ public class StatusBarViewModel : INotifyPropertyChanged
 {
     private int _line = 1;
     private int _column = 1;
-    private string _encoding = "UTF-8";
     private string _lineEnding = "LF";
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -33,19 +32,6 @@ public class StatusBarViewModel : INotifyPropertyChanged
             if (_column != value)
             {
                 _column = value;
-                OnPropertyChanged();
-            }
-        }
-    }
-
-    public string Encoding
-    {
-        get => _encoding;
-        set
-        {
-            if (_encoding != value)
-            {
-                _encoding = value;
                 OnPropertyChanged();
             }
         }

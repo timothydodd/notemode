@@ -2,9 +2,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="NoteMode.Views.SettingsDialog"
         Title="Settings"
-        Width="500" Height="550"
+        Width="500" Height="560"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
+        ShowInTaskbar="False"
         ExtendClientAreaToDecorationsHint="True"
         WindowDecorations="None"
         ExtendClientAreaTitleBarHeightHint="32">
@@ -32,21 +33,9 @@
                                    Foreground="{DynamicResource TitleBarForeground}"
                                    VerticalAlignment="Center"/>
                     </StackPanel>
-                    <Button Grid.Column="1"
-                            Click="Close_Click"
-                            Width="46" Height="32"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            VerticalContentAlignment="Center"
-                            HorizontalContentAlignment="Center"
-                            Classes="close">
-                        <Path Data="M18 6 6 18M6 6l12 12"
-                              Stroke="{DynamicResource TitleBarForeground}"
-                              StrokeThickness="1.5"
-                              StrokeLineCap="Round"
-                              StrokeJoin="Round"
-                              Stretch="Uniform"
-                              Width="14" Height="14"/>
+                    <Button Grid.Column="1" Classes="winctl close" Click="Close_Click"
+                            ToolTip.Tip="Close (Esc)" AutomationProperties.Name="Close">
+                        <Path Data="M18 6 6 18M6 6l12 12"/>
                     </Button>
                 </Grid>
             </Border>
@@ -55,10 +44,16 @@
             <Border DockPanel.Dock="Bottom" Padding="16,10"
                     BorderBrush="{DynamicResource SearchPanelBorder}"
                     BorderThickness="0,1,0,0">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-                    <Button Content="Apply" Click="Apply_Click" Classes="primary" Padding="16,6" x:Name="ApplyButton"/>
-                    <Button Content="Close" Click="Close_Click" Padding="16,6"/>
-                </StackPanel>
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock x:Name="StatusText"
+                               FontSize="11"
+                               Foreground="{DynamicResource SecondaryText}"
+                               VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                        <Button Content="Close" Click="Close_Click" IsCancel="True"/>
+                        <Button Content="Apply" Click="Apply_Click" Classes="primary" x:Name="ApplyButton"/>
+                    </StackPanel>
+                </Grid>
             </Border>
 
             <!-- Main content -->
@@ -68,17 +63,18 @@
                     <TextBlock Text="File Associations"
                                FontSize="14"
                                FontWeight="SemiBold"/>
-                    <TextBlock Text="Associate file types with NoteMode (Windows only, per-user)"
+                    <TextBlock x:Name="AssociationsHint"
+                               Text="Open these file types with NoteMode when double-clicked in File Explorer. Applies to your Windows account only."
                                FontSize="11"
                                Foreground="{DynamicResource SecondaryText}"
                                TextWrapping="Wrap"/>
 
-                    <!-- Not available on non-Windows -->
+                    <!-- Shown instead of the checkboxes when associations can't be set from here -->
                     <TextBlock x:Name="NotAvailableText"
-                               Text="File associations are only available on Windows."
                                FontSize="11"
                                FontStyle="Italic"
                                Foreground="{DynamicResource SecondaryText}"
+                               TextWrapping="Wrap"
                                IsVisible="False"/>
 
                     <!-- Select All / Deselect All -->
@@ -89,14 +85,30 @@
 
                     <!-- Extension groups will be added here programmatically -->
                     <StackPanel x:Name="ExtensionGroups" Spacing="12"/>
+
+                    <!-- About -->
+                    <Separator Margin="0,4"/>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="About"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock x:Name="VersionText"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource SecondaryText}"/>
+                        <Button Click="OpenRepository_Click"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                ToolTip.Tip="https://github.com/timothydodd/notemode">
+                            <TextBlock Text="Source code, releases and issues on GitHub"
+                                       FontSize="11"
+                                       Foreground="{DynamicResource AccentColor}"
+                                       TextDecorations="Underline"/>
+                        </Button>
+                    </StackPanel>
                 </StackPanel>
             </ScrollViewer>
         </DockPanel>
     </Panel>
-
-    <Window.Styles>
-        <Style Selector="Button.close:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#ff5555"/>
-        </Style>
-    </Window.Styles>
 </Window>

@@ -10,32 +10,14 @@
             BorderThickness="1,1,0,0">
         <DockPanel>
             <!-- Header bar -->
-            <Border DockPanel.Dock="Top"
-                    Background="{DynamicResource NotesPanelHeaderBackground}"
-                    BorderBrush="{DynamicResource NotesPanelBorder}"
-                    BorderThickness="0,0,0,1"
-                    Padding="10,8">
+            <Border DockPanel.Dock="Top" Classes="panelHeader">
                 <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock Text="NOTES"
-                               FontSize="11"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource NotesPanelHeaderText}"
-                               VerticalAlignment="Center"
-                               Opacity="0.7"/>
-                    <Button Grid.Column="1"
-                            Click="CloseButton_Click"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Padding="0"
-                            Width="20" Height="20"
-                            VerticalContentAlignment="Center"
-                            HorizontalContentAlignment="Center">
-                        <Path Data="M18 6 6 18M6 6l12 12"
-                              Stroke="{DynamicResource NotesPanelHeaderText}"
-                              StrokeThickness="1.5"
-                              StrokeLineCap="Round"
-                              Stretch="Uniform"
-                              Width="12" Height="12"/>
+                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <Path Classes="panelIcon" Data="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4M2 6h4M2 10h4M2 14h4M2 18h4M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/>
+                        <TextBlock Classes="panelTitle" Text="NOTES"/>
+                    </StackPanel>
+                    <Button Grid.Column="1" Classes="panelClose" Click="CloseButton_Click">
+                        <Path/>
                     </Button>
                 </Grid>
             </Border>
@@ -54,7 +36,7 @@
                               Stretch="Uniform"
                               Width="13" Height="13"
                               VerticalAlignment="Center"/>
-                        <TextBlock Text="Folder" FontSize="11" VerticalAlignment="Center"/>
+                        <TextBlock Text="New Folder" FontSize="11" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
             </Border>
@@ -123,6 +105,7 @@
                                            IsVisible="{Binding !IsEditing}"/>
                                 <!-- Rename textbox (editing) -->
                                 <TextBox Text="{Binding EditName}"
+                                         Classes="compact"
                                          FontSize="12"
                                          MinWidth="100"
                                          Padding="2,0"

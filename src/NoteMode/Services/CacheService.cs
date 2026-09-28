@@ -9,11 +9,7 @@ public class CacheService
 
     public CacheService()
     {
-        _cacheDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            ".notemode",
-            "cache"
-        );
+        _cacheDir = AppPaths.CacheDir;
         Directory.CreateDirectory(_cacheDir);
     }
 
@@ -27,7 +23,7 @@ public class CacheService
         try
         {
             var path = GetCachePath(tabId);
-            File.WriteAllText(path, content);
+            AppPaths.WriteAllTextAtomic(path, content);
         }
         catch (Exception)
         {

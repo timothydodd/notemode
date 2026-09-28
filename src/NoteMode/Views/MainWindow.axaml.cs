@@ -2,6 +2,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
@@ -56,24 +57,13 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         OpenFileCommand = new RelayCommand(_ => RunAsync(OpenFileAsync));
-        SaveFileCommand = new RelayCommand(_ => RunAsync(SaveFileAsync));
-        SaveAsCommand = new RelayCommand(_ => RunAsync(SaveAsAsync));
-        SaveTabCommand = new RelayCommand(tab => RunAsync(() => SaveTabAsync(tab as TabViewModel)));
-        SaveTabAsCommand = new RelayCommand(tab => RunAsync(() => SaveTabAsAsync(tab as TabViewModel)));
-        RenameTabCommand = new RelayCommand(tab => RunAsync(() => RenameTabAsync(tab as TabViewModel)));
         UndoCommand = new RelayCommand(_ => GetCurrentEditorView()?.Undo());
         RedoCommand = new RelayCommand(_ => GetCurrentEditorView()?.Redo());
         TogglePreviewCommand = new RelayCommand(_ => GetCurrentEditorView()?.TogglePreview());
         CloseTabWithPromptCommand = new RelayCommand(tab => RunAsync(() => TryCloseTabAsync(tab as TabViewModel)));
         PinTabCommand = new RelayCommand(tab => ViewModel?.PinEphemeralTab(tab as TabViewModel));
-        CloseOthersWithPromptCommand = new RelayCommand(tab => RunAsync(() => TryCloseOthersAsync(tab as TabViewModel)));
-        CloseToRightWithPromptCommand = new RelayCommand(tab => RunAsync(() => TryCloseToRightAsync(tab as TabViewModel)));
-        CloseToLeftWithPromptCommand = new RelayCommand(tab => RunAsync(() => TryCloseToLeftAsync(tab as TabViewModel)));
-        CloseAllWithPromptCommand = new RelayCommand(_ => RunAsync(TryCloseAllAsync));
-        FindCommand = new RelayCommand(_ => ShowFindReplaceDialog());
-        FindInTabsCommand = new RelayCommand(_ => ShowFindInTabsDialog());
-        ToggleSearchPanelCommand = new RelayCommand(_ => ToggleSearchPanel());
-        ReplaceCommand = new RelayCommand(_ => ShowFindReplaceDialog());
+        FindCommand = new RelayCommand(_ => ShowFindReplaceDialog(replace: false));
+        ReplaceCommand = new RelayCommand(_ => ShowFindReplaceDialog(replace: true));
 
         AddHandler(PointerMovedEvent, Window_PointerMoved, handledEventsToo: true);
         AddHandler(PointerReleasedEvent, Window_PointerReleased, handledEventsToo: true);
@@ -139,7 +129,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private static async void RunAsync(Func<System.Threading.Tasks.Task> asyncAction)
+    private async void RunAsync(Func<System.Threading.Tasks.Task> asyncAction)
     {
         try
         {
@@ -147,9 +137,12 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}");
+            await ShowMessageAsync("Something went wrong", ex.Message);
         }
     }
+
+    private System.Threading.Tasks.Task ShowMessageAsync(string title, string message) =>
+        new MessageDialog(title, message).ShowDialog(this);
 
     protected override void OnLoaded(Avalonia.Interactivity.RoutedEventArgs e)
     {
@@ -162,6 +155,7 @@ public partial class MainWindow : Window
         if (ViewModel != null)
         {
             ViewModel.ExternalChangeDetected += OnExternalChangeDetected;
+            ViewModel.ErrorOccurred += (_, error) => RunAsync(() => ShowMessageAsync(error.Title, error.Message));
             IsEphemeralMode = ViewModel.IsEphemeralMode;
             ViewModel.PropertyChanged += (s, e) =>
             {
@@ -218,6 +212,8 @@ public partial class MainWindow : Window
 
     private async System.Threading.Tasks.Task HandleExternalChangeAsync(TabViewModel tab)
     {
+        // A restored tab that has not been shown yet may still hold cached edits.
+        tab.EnsureContentLoaded();
         if (!tab.IsDirty)
         {
             // Clean file: auto-reload silently
@@ -226,39 +222,22 @@ public partial class MainWindow : Window
         }
 
         // Dirty file: show dialog
-        var dialog = new FileChangedDialog(tab.Title, hasLocalChanges: true);
+        var dialog = new FileChangedDialog(tab.Title);
         var result = await dialog.ShowDialog<FileChangedResult>(this);
 
-        switch (result)
-        {
-            case FileChangedResult.Reload:
-                tab.ReloadFromDisk();
-                break;
-            case FileChangedResult.KeepChanges:
-            case FileChangedResult.Ignore:
-                tab.AcknowledgeExternalChanges();
-                break;
-        }
+        if (result == FileChangedResult.Reload)
+            tab.ReloadFromDisk();
+        else
+            tab.AcknowledgeExternalChanges();
     }
 
     public ICommand OpenFileCommand { get; }
-    public ICommand SaveFileCommand { get; }
-    public ICommand SaveAsCommand { get; }
-    public ICommand SaveTabCommand { get; }
-    public ICommand SaveTabAsCommand { get; }
-    public ICommand RenameTabCommand { get; }
     public ICommand UndoCommand { get; }
     public ICommand RedoCommand { get; }
     public ICommand TogglePreviewCommand { get; }
     public ICommand CloseTabWithPromptCommand { get; }
     public ICommand PinTabCommand { get; }
-    public ICommand CloseOthersWithPromptCommand { get; }
-    public ICommand CloseToRightWithPromptCommand { get; }
-    public ICommand CloseToLeftWithPromptCommand { get; }
-    public ICommand CloseAllWithPromptCommand { get; }
     public ICommand FindCommand { get; }
-    public ICommand FindInTabsCommand { get; }
-    public ICommand ToggleSearchPanelCommand { get; }
     public ICommand ReplaceCommand { get; }
 
     private MainWindowViewModel? ViewModel => DataContext as MainWindowViewModel;
@@ -362,12 +341,6 @@ public partial class MainWindow : Window
                     break;
                 }
             }
-        }
-
-        // Adjust for dragged item position
-        if (_draggedOriginalIndex >= 0 && newDropIndex > _draggedOriginalIndex)
-        {
-            // Account for the dragged item being "removed"
         }
 
         if (newDropIndex != _currentDropIndex)
@@ -499,60 +472,27 @@ public partial class MainWindow : Window
         }
     }
 
-    private async System.Threading.Tasks.Task SaveFileAsync()
+    private System.Threading.Tasks.Task SaveFileAsync() => SaveTabAsync(ViewModel?.SelectedTab);
+
+    private System.Threading.Tasks.Task SaveAsAsync() => SaveTabAsAsync(ViewModel?.SelectedTab);
+
+    /// <summary>Saves a tab (asking for a path if it has none). False when cancelled or the save failed.</summary>
+    private async System.Threading.Tasks.Task<bool> SaveTabAsync(TabViewModel? tab)
     {
-        var tab = ViewModel?.SelectedTab;
-        if (tab == null)
-            return;
+        if (tab == null || ViewModel == null)
+            return false;
 
-        if (tab.IsNote)
-        {
-            ViewModel?.SaveFile(tab);
-            return;
-        }
+        if (!tab.IsNote && string.IsNullOrEmpty(tab.FilePath))
+            return await SaveTabAsAsync(tab);
 
-        if (string.IsNullOrEmpty(tab.FilePath))
-        {
-            await SaveAsAsync();
-            return;
-        }
-
-        ViewModel?.SaveFile(tab);
+        return ViewModel.SaveFile(tab);
     }
 
-    private async System.Threading.Tasks.Task SaveAsAsync()
+    /// <summary>Asks for a path and saves the tab there. False when cancelled or the save failed.</summary>
+    private async System.Threading.Tasks.Task<bool> SaveTabAsAsync(TabViewModel? tab)
     {
-        var tab = ViewModel?.SelectedTab;
-        if (tab == null)
-            return;
-
-        await SaveTabAsAsync(tab);
-    }
-
-    private async System.Threading.Tasks.Task SaveTabAsync(TabViewModel? tab)
-    {
-        if (tab == null)
-            return;
-
-        if (tab.IsNote)
-        {
-            ViewModel?.SaveFile(tab);
-            return;
-        }
-
-        if (string.IsNullOrEmpty(tab.FilePath))
-        {
-            await SaveTabAsAsync(tab);
-            return;
-        }
-
-        ViewModel?.SaveFile(tab);
-    }
-
-    private async System.Threading.Tasks.Task SaveTabAsAsync(TabViewModel? tab)
-    {
-        if (tab == null)
-            return;
+        if (tab == null || ViewModel == null)
+            return false;
 
         var suggestedName = tab.Title;
         if (string.IsNullOrEmpty(System.IO.Path.GetExtension(suggestedName)))
@@ -564,6 +504,9 @@ public partial class MainWindow : Window
         {
             Title = "Save File",
             SuggestedFileName = suggestedName,
+            SuggestedStartLocation = string.IsNullOrEmpty(tab.FilePath)
+                ? null
+                : await StorageProvider.TryGetFolderFromPathAsync(System.IO.Path.GetDirectoryName(tab.FilePath)!),
             DefaultExtension = "txt",
             FileTypeChoices = new List<FilePickerFileType>
             {
@@ -572,14 +515,8 @@ public partial class MainWindow : Window
             }
         });
 
-        if (file != null)
-        {
-            var path = file.TryGetLocalPath();
-            if (!string.IsNullOrEmpty(path))
-            {
-                ViewModel?.SaveFile(tab, path);
-            }
-        }
+        var path = file?.TryGetLocalPath();
+        return !string.IsNullOrEmpty(path) && ViewModel.SaveFile(tab, path);
     }
 
     private async System.Threading.Tasks.Task RenameTabAsync(TabViewModel? tab)
@@ -707,6 +644,30 @@ public partial class MainWindow : Window
         WindowState = WindowState.Minimized;
     }
 
+    // Lucide "maximize" and "minimize": the title bar button shows what clicking it will do.
+    private const string MaximizeIconData = "M8 3H5a2 2 0 0 0-2 2v3 M21 8V5a2 2 0 0 0-2-2h-3 M3 16v3a2 2 0 0 0 2 2h3 M16 21h3a2 2 0 0 0 2-2v-3";
+    private const string RestoreIconData = "M8 3v3a2 2 0 0 1-2 2H3 M21 8h-3a2 2 0 0 1-2-2V3 M3 16h3a2 2 0 0 1 2 2v3 M16 21v-3a2 2 0 0 1 2-2h3";
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == WindowStateProperty)
+            UpdateMaximizeButton();
+    }
+
+    private void UpdateMaximizeButton()
+    {
+        var maximized = WindowState == WindowState.Maximized;
+        if (this.FindControl<Avalonia.Controls.Shapes.Path>("MaximizeIcon") is { } icon)
+            icon.Data = Avalonia.Media.Geometry.Parse(maximized ? RestoreIconData : MaximizeIconData);
+        if (this.FindControl<Button>("MaximizeButton") is { } button)
+        {
+            var label = maximized ? "Restore" : "Maximize";
+            ToolTip.SetTip(button, label);
+            Avalonia.Automation.AutomationProperties.SetName(button, label);
+        }
+    }
+
     private void MaximizeRestore_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (WindowState == WindowState.Maximized)
@@ -729,6 +690,37 @@ public partial class MainWindow : Window
         GetCurrentEditorView()?.Undo();
     }
 
+    private void Cut_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e) => GetCurrentEditorView()?.GetEditor()?.Cut();
+
+    private void Copy_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e) => GetCurrentEditorView()?.GetEditor()?.Copy();
+
+    private void Paste_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e) => GetCurrentEditorView()?.GetEditor()?.Paste();
+
+    private void SelectAll_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e) => GetCurrentEditorView()?.GetEditor()?.SelectAll();
+
+    private async void CopyPath_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is MenuItem { Tag: TabViewModel { FilePath: { Length: > 0 } path } } && Clipboard != null)
+            await Clipboard.SetTextAsync(path);
+    }
+
+    private void RevealInExplorer_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { Tag: TabViewModel { FilePath: { Length: > 0 } path } })
+            return;
+        try
+        {
+            if (OperatingSystem.IsWindows())
+                System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{path}\"");
+            else
+                Launcher.LaunchDirectoryInfoAsync(new System.IO.FileInfo(path).Directory!);
+        }
+        catch (Exception ex)
+        {
+            RunAsync(() => ShowMessageAsync("Can't open folder", ex.Message));
+        }
+    }
+
     private void Redo_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         GetCurrentEditorView()?.Redo();
@@ -739,76 +731,27 @@ public partial class MainWindow : Window
         if (tab == null)
             return true;
 
+        // Load a restored tab's cached edits so IsDirty tells the truth before asking.
+        tab.EnsureContentLoaded();
         if (tab.IsDirty)
         {
+            ViewModel!.SelectedTab = tab;
             var dialog = new UnsavedChangesDialog(tab.Title);
             var result = await dialog.ShowDialog<UnsavedChangesResult>(this);
 
             switch (result)
             {
-                case UnsavedChangesResult.Save:
-                    if (tab.IsNote)
-                    {
-                        ViewModel?.SaveFile(tab);
-                    }
-                    else if (string.IsNullOrEmpty(tab.FilePath))
-                    {
-                        await SaveTabAsAsync(tab);
-                        if (tab.IsDirty)
-                            return false; // Save was cancelled
-                    }
-                    else
-                    {
-                        ViewModel?.SaveFile(tab);
-                    }
-                    break;
                 case UnsavedChangesResult.Cancel:
                     return false;
-                case UnsavedChangesResult.DontSave:
+                case UnsavedChangesResult.Save:
+                    // Keep the tab (and its edits) open if the save was cancelled or failed.
+                    if (!await SaveTabAsync(tab))
+                        return false;
                     break;
             }
         }
 
         ViewModel?.CloseTab(tab);
-        return true;
-    }
-
-    public async System.Threading.Tasks.Task<bool> TryCloseAllDirtyTabsAsync()
-    {
-        if (ViewModel == null)
-            return true;
-
-        var dirtyTabs = ViewModel.Tabs.Where(t => t.IsDirty).ToList();
-        foreach (var tab in dirtyTabs)
-        {
-            var dialog = new UnsavedChangesDialog(tab.Title);
-            var result = await dialog.ShowDialog<UnsavedChangesResult>(this);
-
-            switch (result)
-            {
-                case UnsavedChangesResult.Save:
-                    if (tab.IsNote)
-                    {
-                        ViewModel.SaveFile(tab);
-                    }
-                    else if (string.IsNullOrEmpty(tab.FilePath))
-                    {
-                        await SaveTabAsAsync(tab);
-                        if (tab.IsDirty)
-                            return false;
-                    }
-                    else
-                    {
-                        ViewModel.SaveFile(tab);
-                    }
-                    break;
-                case UnsavedChangesResult.Cancel:
-                    return false;
-                case UnsavedChangesResult.DontSave:
-                    break;
-            }
-        }
-
         return true;
     }
 
@@ -872,23 +815,33 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ShowFindReplaceDialog()
+    private FindReplaceDialog? _findReplaceDialog;
+
+    private void ShowFindReplaceDialog(bool replace)
     {
-        var editorView = GetCurrentEditorView();
-        var editor = editorView?.GetEditor();
+        var editor = GetCurrentEditorView()?.GetEditor();
         if (editor == null)
             return;
 
-        var dialog = new FindReplaceDialog(editor);
-        dialog.Show(this);
-    }
+        // One dialog at a time: Ctrl+F / Ctrl+H again brings it back instead of stacking another.
+        if (_findReplaceDialog != null)
+        {
+            if (_findReplaceDialog.Editor == editor)
+            {
+                _findReplaceDialog.Activate();
+                _findReplaceDialog.FocusField(replace);
+                return;
+            }
+            _findReplaceDialog.Close();
+        }
 
-    private void ShowFindInTabsDialog()
-    {
-        if (ViewModel == null)
-            return;
-
-        var dialog = new FindInTabsDialog(ViewModel, GoToSearchResult);
+        var dialog = new FindReplaceDialog(editor) { FocusReplace = replace };
+        dialog.Closed += (_, _) =>
+        {
+            if (_findReplaceDialog == dialog)
+                _findReplaceDialog = null;
+        };
+        _findReplaceDialog = dialog;
         dialog.Show(this);
     }
 
@@ -918,7 +871,7 @@ public partial class MainWindow : Window
 
     private void Find_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        ShowFindReplaceDialog();
+        ShowFindReplaceDialog(replace: false);
     }
 
     private void ToggleSearchPanel_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -1048,7 +1001,8 @@ public partial class MainWindow : Window
         {
             // File mode: open file (or switch to existing tab) and navigate
             var tab = ViewModel.OpenFile(item.FilePath);
-            GoToSearchResult(tab, item.StartOffset, item.Length, item.LineNumber);
+            if (tab != null)
+                GoToSearchResult(tab, item.StartOffset, item.Length, item.LineNumber);
         }
     }
 
@@ -1322,10 +1276,10 @@ public partial class MainWindow : Window
 
     private void Replace_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        ShowFindReplaceDialog();
+        ShowFindReplaceDialog(replace: true);
     }
 
-    private async void LanguageButton_PointerPressed(object? sender, PointerPressedEventArgs e)
+    private async void LanguageButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (ViewModel?.SelectedTab == null)
             return;
@@ -1365,6 +1319,7 @@ public partial class MainWindow : Window
             ViewModel.NotesPanelWidth = _notesPanelColumn.Width.Value;
         }
 
+        ViewModel?.FlushAllCaches();
         ViewModel?.SaveState();
         base.OnClosing(e);
     }

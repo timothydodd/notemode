@@ -20,7 +20,7 @@
         <!-- Search Box -->
         <TextBox x:Name="SearchTextBox"
                  DockPanel.Dock="Top"
-                 Watermark="Search languages..."
+                 PlaceholderText="Search languages..."
                  Margin="0,0,0,12"
                  TextChanged="SearchTextBox_TextChanged"/>
 

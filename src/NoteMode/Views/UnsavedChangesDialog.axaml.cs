@@ -5,9 +5,10 @@ namespace NoteMode.Views;
 
 public enum UnsavedChangesResult
 {
+    // First, so closing the window without a choice (default value) cancels instead of saving.
+    Cancel,
     Save,
-    DontSave,
-    Cancel
+    DontSave
 }
 
 public partial class UnsavedChangesDialog : Window

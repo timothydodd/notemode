@@ -9,43 +9,14 @@
             BorderThickness="0,1,1,0">
         <DockPanel>
             <!-- Header bar -->
-            <Border DockPanel.Dock="Top"
-                    Background="{DynamicResource SearchPanelHeaderBackground}"
-                    BorderBrush="{DynamicResource SearchPanelBorder}"
-                    BorderThickness="0,0,0,1"
-                    Padding="10,8">
+            <Border DockPanel.Dock="Top" Classes="panelHeader">
                 <Grid ColumnDefinitions="*,Auto">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <Path Data="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"
-                              Stroke="{DynamicResource SearchPanelHeaderText}"
-                              StrokeThickness="1.5"
-                              StrokeLineCap="Round"
-                              StrokeJoin="Round"
-                              Stretch="Uniform"
-                              Width="13" Height="13"
-                              Opacity="0.7"/>
-                        <TextBlock Text="EXPLORER"
-                                   FontSize="11"
-                                   FontWeight="SemiBold"
-                                   Foreground="{DynamicResource SearchPanelHeaderText}"
-                                   VerticalAlignment="Center"
-                                   Opacity="0.7"/>
+                        <Path Classes="panelIcon" Data="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>
+                        <TextBlock Classes="panelTitle" Text="EXPLORER"/>
                     </StackPanel>
-                    <Button Grid.Column="1"
-                            Click="CloseButton_Click"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Padding="0"
-                            Width="20" Height="20"
-                            VerticalContentAlignment="Center"
-                            HorizontalContentAlignment="Center">
-                        <Path Data="M18 6 6 18M6 6l12 12"
-                              Stroke="{DynamicResource SearchPanelHeaderText}"
-                              StrokeThickness="1.5"
-                              StrokeLineCap="Round"
-                              StrokeJoin="Round"
-                              Stretch="Uniform"
-                              Width="12" Height="12"/>
+                    <Button Grid.Column="1" Classes="panelClose" Click="CloseButton_Click">
+                        <Path/>
                     </Button>
                 </Grid>
             </Border>
