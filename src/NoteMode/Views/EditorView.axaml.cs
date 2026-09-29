@@ -55,24 +55,35 @@ public partial class EditorView : UserControl
             _editor.TextArea.Caret.PositionChanged += OnCaretPositionChanged;
             ApplySelectionBrush();
 
-            // Add spacing after line numbers
-            foreach (var margin in _editor.TextArea.LeftMargins)
-            {
-                if (margin is LineNumberMargin lineNumberMargin)
-                {
-                    lineNumberMargin.Margin = new Thickness(0, 0, 12, 0);
-                }
-            }
+            // The line-number margins are recreated whenever line numbers are toggled
+            StyleLeftMargins();
+            _editor.TextArea.LeftMargins.CollectionChanged += (_, _) => StyleLeftMargins();
 
-            // Add padding to text content
-            _editor.TextArea.Padding = new Thickness(8);
-            _editor.TextArea.TextView.Margin = new Thickness(8);
+            // Add padding to text content; nothing on the left so line numbers sit flush
+            _editor.TextArea.Padding = new Thickness(0, 8, 8, 8);
+            _editor.TextArea.TextView.Margin = new Thickness(8, 0, 0, 0);
         }
 
         // Subscribe to theme changes
         if (App.Instance != null)
         {
             App.Instance.ThemeChanged += OnAppThemeChanged;
+        }
+    }
+
+    private void StyleLeftMargins()
+    {
+        if (_editor == null)
+            return;
+
+        foreach (var margin in _editor.TextArea.LeftMargins)
+        {
+            // Space either side of the line numbers; the gutter has no background of its own, so it matches the editor
+            if (margin is LineNumberMargin lineNumberMargin)
+                lineNumberMargin.Margin = new Thickness(8, 0, 12, 0);
+            // Hide the dotted separator line between line numbers and text
+            else if (DottedLineMargin.IsDottedLineMargin(margin))
+                margin.IsVisible = false;
         }
     }
 
@@ -238,6 +249,27 @@ public partial class EditorView : UserControl
         }
     }
 
+    /// <summary>A tailed log is read-only and kept scrolled to its last line.</summary>
+    private void ApplyTailing()
+    {
+        if (_editor == null || _viewModel == null)
+            return;
+
+        _editor.IsReadOnly = _viewModel.IsTailing;
+        if (_viewModel.IsTailing)
+            ScrollToEnd();
+    }
+
+    private void ScrollToEnd()
+    {
+        if (_editor == null)
+            return;
+
+        _editor.TextArea.Caret.Offset = _editor.Document.TextLength;
+        // Layout for newly added lines is not done yet; scroll once it is.
+        Dispatcher.UIThread.Post(() => _editor?.ScrollToEnd(), DispatcherPriority.Loaded);
+    }
+
     private void OnCaretPositionChanged(object? sender, EventArgs e)
     {
         if (_editor != null && _mainViewModel != null)
@@ -327,6 +359,7 @@ public partial class EditorView : UserControl
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
             UpdateEditorContent();
             UpdateMarkdownTransformer();
+            ApplyTailing();
         }
     }
 
@@ -339,6 +372,10 @@ public partial class EditorView : UserControl
         else if (e.PropertyName == nameof(TabViewModel.SyntaxName))
         {
             UpdateMarkdownTransformer();
+        }
+        else if (e.PropertyName == nameof(TabViewModel.IsTailing))
+        {
+            ApplyTailing();
         }
     }
 
@@ -389,6 +426,8 @@ public partial class EditorView : UserControl
             _isUpdatingFromViewModel = true;
             _editor.Text = content;
             UpdateStatusBarLineEnding();
+            if (_viewModel.IsTailing)
+                ScrollToEnd();
         }
         finally
         {

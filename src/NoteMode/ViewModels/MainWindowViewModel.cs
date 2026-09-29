@@ -95,6 +95,11 @@ public class MainWindowViewModel : INotifyPropertyChanged
         SaveAllCommand = new RelayCommand(_ => SaveAll());
         ToggleWhitespaceCommand = new RelayCommand(_ => ShowWhitespace = !ShowWhitespace);
         ToggleLineNumbersCommand = new RelayCommand(_ => ShowLineNumbers = !ShowLineNumbers);
+        ToggleTailCommand = new RelayCommand(_ =>
+        {
+            if (SelectedTab != null)
+                SelectedTab.IsTailing = !SelectedTab.IsTailing;
+        });
         ToggleLightThemeCommand = new RelayCommand(_ => UseLightTheme = !UseLightTheme);
         ToggleSearchPanelCommand = new RelayCommand(_ => IsSearchPanelOpen = !IsSearchPanelOpen);
         ToggleNotesPanelCommand = new RelayCommand(_ => IsNotesPanelOpen = !IsNotesPanelOpen);
@@ -306,6 +311,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public ICommand SaveAllCommand { get; }
     public ICommand ToggleWhitespaceCommand { get; }
     public ICommand ToggleLineNumbersCommand { get; }
+    public ICommand ToggleTailCommand { get; }
     public ICommand ToggleLightThemeCommand { get; }
     public ICommand ToggleSearchPanelCommand { get; }
     public ICommand ToggleNotesPanelCommand { get; }

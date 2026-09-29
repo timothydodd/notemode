@@ -11,7 +11,7 @@
     <PublishAot>true</PublishAot>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <!-- Fallback for local builds; CI stamps the version from the v* tag. Bump it when tagging. -->
-    <Version>0.3.1</Version>
+    <Version>0.4.0</Version>
     <Authors>Tim Dodd</Authors>
     <Product>NoteMode</Product>
     <Description>A lightweight, fast text editor that remembers your session.</Description>

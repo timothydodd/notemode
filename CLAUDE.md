@@ -78,6 +78,7 @@ Each tab (`TabViewModel`) has:
 - **Dirty state tracking**: Compares current content vs. original, shows "●" indicator when modified
 - **Auto-caching**: Content saved to disk 500ms after changes (debounced)
 - **Syntax highlighting**: Applied based on file extension via `SyntaxService` (30+ languages supported)
+- **Tail** (`.log` files only): status-bar toggle (`IsTailing`, persisted in `TabState`); the tab goes read-only, `FileChangeService` checks it every second including its length (Windows can leave the last-write time stale while a writer holds the file open), reloads on change and scrolls to the end
 
 Smart tab selection: When closing a tab, selects next tab to the right, or previous if rightmost.
 

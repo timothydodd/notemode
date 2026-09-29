@@ -24,7 +24,10 @@ public static class TextFileIO
         return Encoding.GetEncoding(1252);
     });
 
-    public static (string Text, Encoding Encoding) Read(string path)
+    public static (string Text, Encoding Encoding) Read(string path) => Read(path, out _);
+
+    /// <summary>Reads the file and also returns its length in bytes, as read.</summary>
+    public static (string Text, Encoding Encoding) Read(string path, out long length)
     {
         byte[] bytes;
         // ReadWrite | Delete: a log file another process is still writing to can be opened.
@@ -35,8 +38,26 @@ public static class TextFileIO
             bytes = memory.ToArray();
         }
 
+        length = bytes.Length;
         var encoding = Detect(bytes, out var bomLength);
         return (encoding.GetString(bytes, bomLength, bytes.Length - bomLength), encoding);
+    }
+
+    /// <summary>
+    /// The file's current length, read from an open handle: unlike the directory entry, this is up
+    /// to date while another process is still writing to the file. Null when it cannot be opened.
+    /// </summary>
+    public static long? GetLength(string path)
+    {
+        try
+        {
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            return stream.Length;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public static Encoding Detect(ReadOnlySpan<byte> bytes, out int bomLength)

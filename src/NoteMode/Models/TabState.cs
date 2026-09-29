@@ -25,4 +25,7 @@ public class TabState
 
     [JsonPropertyName("isNote")]
     public bool IsNote { get; set; }
+
+    [JsonPropertyName("isTailing")]
+    public bool IsTailing { get; set; }
 }

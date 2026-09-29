@@ -112,4 +112,17 @@
         <Setter Property="Background" Value="{DynamicResource WindowControlHover}"/>
         <Setter Property="Foreground" Value="{DynamicResource TitleBarForeground}"/>
     </Style>
+
+    <!-- A status bar toggle that is on (Tail) -->
+    <Style Selector="Button.statusItem.active">
+        <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    <Style Selector="Button.statusItem.active /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource AccentColor}"/>
+    </Style>
+
+    <!-- Top-level menu bar items show the title bar through them (their dropdown items keep the theme's menu color) -->
+    <Style Selector="Menu > MenuItem">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
 </Styles>

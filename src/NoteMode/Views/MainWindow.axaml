@@ -47,112 +47,32 @@
                     <!-- Menu Bar -->
                     <Menu Grid.Column="1" VerticalAlignment="Center" Background="Transparent">
                         <MenuItem Header="_File">
-                            <MenuItem Header="_New" Command="{Binding NewTabCommand}" InputGesture="Ctrl+N">
-                                <MenuItem.Icon>
-                                    <Path Data="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2zM14 2v5a1 1 0 0 0 1 1h5M9 15h6M12 18v-6"
-                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem Header="_Open..." Click="OpenFile_Click" InputGesture="Ctrl+O">
-                                <MenuItem.Icon>
-                                    <Path Data="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"
-                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
+                            <MenuItem Header="_New" Command="{Binding NewTabCommand}" InputGesture="Ctrl+N"/>
+                            <MenuItem Header="_Open..." Click="OpenFile_Click" InputGesture="Ctrl+O"/>
                             <Separator />
-                            <MenuItem Header="_Save" Click="SaveFile_Click" InputGesture="Ctrl+S">
-                                <MenuItem.Icon>
-                                    <Path Data="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7M7 3v4a1 1 0 0 0 1 1h7"
-                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem Header="Save _As..." Click="SaveAs_Click" InputGesture="Ctrl+Shift+S">
-                                <MenuItem.Icon>
-                                    <Path Data="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2zM14 2v5a1 1 0 0 0 1 1h5M12 18v-6M9 15l3 3 3-3"
-                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem Header="Save A_ll" Command="{Binding SaveAllCommand}" InputGesture="Ctrl+Shift+A">
-                                <MenuItem.Icon>
-                                    <Path Data="M10 2v3a1 1 0 0 0 1 1h5M18 18v-6a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6M18 22H4a2 2 0 0 1-2-2V6M8 18a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9.172a2 2 0 0 1 1.414.586l2.828 2.828A2 2 0 0 1 22 6.828V16a2 2 0 0 1-2.01 2z"
-                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
+                            <MenuItem Header="_Save" Click="SaveFile_Click" InputGesture="Ctrl+S"/>
+                            <MenuItem Header="Save _As..." Click="SaveAs_Click" InputGesture="Ctrl+Shift+S"/>
+                            <MenuItem Header="Save A_ll" Command="{Binding SaveAllCommand}" InputGesture="Ctrl+Shift+A"/>
                             <MenuItem Header="Save As _Note" Click="SaveAsNote_Click"
-                                      IsVisible="{Binding SelectedTab.IsNote, Converter={x:Static BoolConverters.Not}, FallbackValue=True}">
-                                <MenuItem.Icon>
-                                    <Path Data="M21 9a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 15 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM15 3v5a1 1 0 0 0 1 1h5"
-                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
+                                      IsVisible="{Binding SelectedTab.IsNote, Converter={x:Static BoolConverters.Not}, FallbackValue=True}"/>
                             <Separator />
-                            <MenuItem Header="_Close Tab" Click="CloseTab_MenuItem_Click" InputGesture="Ctrl+W">
-                                <MenuItem.Icon>
-                                    <Path Data="M18 6 6 18M6 6l12 12"
-                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
+                            <MenuItem Header="_Close Tab" Click="CloseTab_MenuItem_Click" InputGesture="Ctrl+W"/>
                             <MenuItem Header="Clos_e All Tabs" Click="CloseAll_MenuItem_Click" />
                             <Separator />
-                            <MenuItem Header="E_xit" Click="Exit_Click" InputGesture="Alt+F4">
-                                <MenuItem.Icon>
-                                    <Path Data="m16 17 5-5-5-5M21 12H9M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
-                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
+                            <MenuItem Header="E_xit" Click="Exit_Click" InputGesture="Alt+F4"/>
                         </MenuItem>
                         <MenuItem Header="_Edit">
-                            <MenuItem Header="_Undo" Click="Undo_Click" InputGesture="Ctrl+Z">
-                                <MenuItem.Icon>
-                                    <Path Data="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11"
-                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem Header="_Redo" Click="Redo_Click" InputGesture="Ctrl+Y">
-                                <MenuItem.Icon>
-                                    <Path Data="m15 14 5-5-5-5M20 9H9.5A5.5 5.5 0 0 0 4 14.5 5.5 5.5 0 0 0 9.5 20H13"
-                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
+                            <MenuItem Header="_Undo" Click="Undo_Click" InputGesture="Ctrl+Z"/>
+                            <MenuItem Header="_Redo" Click="Redo_Click" InputGesture="Ctrl+Y"/>
                             <Separator />
-                            <MenuItem Header="Cu_t" Click="Cut_Click" InputGesture="Ctrl+X">
-                                <MenuItem.Icon>
-                                    <Path Data="M3 6a3 3 0 1 0 6 0a3 3 0 1 0-6 0M8.12 8.12 12 12M20 4 8.12 15.88M3 18a3 3 0 1 0 6 0a3 3 0 1 0-6 0M14.8 14.8 20 20"
-                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem Header="_Copy" Click="Copy_Click" InputGesture="Ctrl+C">
-                                <MenuItem.Icon>
-                                    <Path Data="M10 8h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2zM4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
-                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem Header="_Paste" Click="Paste_Click" InputGesture="Ctrl+V">
-                                <MenuItem.Icon>
-                                    <Path Data="M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zM16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
-                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
+                            <MenuItem Header="Cu_t" Click="Cut_Click" InputGesture="Ctrl+X"/>
+                            <MenuItem Header="_Copy" Click="Copy_Click" InputGesture="Ctrl+C"/>
+                            <MenuItem Header="_Paste" Click="Paste_Click" InputGesture="Ctrl+V"/>
                             <MenuItem Header="Select _All" Click="SelectAll_Click" InputGesture="Ctrl+A"/>
                             <Separator />
-                            <MenuItem Header="_Find..." Click="Find_Click" InputGesture="Ctrl+F">
-                                <MenuItem.Icon>
-                                    <Path Data="M19 11a8 8 0 1 0-16 0 8 8 0 0 0 16 0zM21 21l-4.34-4.34"
-                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem Header="_Replace..." Click="Replace_Click" InputGesture="Ctrl+H">
-                                <MenuItem.Icon>
-                                    <Path Data="M14 4a1 1 0 0 1 1-1M15 10a1 1 0 0 1-1-1M21 4a1 1 0 0 0-1-1M21 9a1 1 0 0 1-1 1M3 7l3 3 3-3M6 10V5a2 2 0 0 1 2-2h2 M4 14h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1z"
-                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem Header="_Search in Tabs and Files..." Click="ToggleSearchPanel_Click" InputGesture="Ctrl+Shift+F">
-                                <MenuItem.Icon>
-                                    <Path Data="M14 2v4a2 2 0 0 0 2 2h4M4.268 21a2 2 0 0 0 1.727 1H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3M9 18l-1.5-1.5M2 14a3 3 0 1 0 6 0a3 3 0 1 0-6 0"
-                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
+                            <MenuItem Header="_Find..." Click="Find_Click" InputGesture="Ctrl+F"/>
+                            <MenuItem Header="_Replace..." Click="Replace_Click" InputGesture="Ctrl+H"/>
+                            <MenuItem Header="_Search in Tabs and Files..." Click="ToggleSearchPanel_Click" InputGesture="Ctrl+Shift+F"/>
                         </MenuItem>
                         <MenuItem Header="_View">
                             <MenuItem Header="Show _Line Numbers"
@@ -212,12 +132,7 @@
                             </MenuItem>
                         </MenuItem>
                         <MenuItem Header="_Tools">
-                            <MenuItem Header="_Settings..." Click="Settings_Click">
-                                <MenuItem.Icon>
-                                    <Path Data="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"
-                                          Stroke="{DynamicResource MenuIconColor}" StrokeThickness="1.5" StrokeLineCap="Round" StrokeJoin="Round" Stretch="Uniform" Width="16" Height="16"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
+                            <MenuItem Header="_Settings..." Click="Settings_Click"/>
                         </MenuItem>
                     </Menu>
 
@@ -279,6 +194,16 @@
 
                     <!-- Right side status info -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="12" HorizontalAlignment="Right">
+                        <!-- Tail (.log files only): follow the file as it grows -->
+                        <Button Classes="statusItem"
+                                Classes.active="{Binding SelectedTab.IsTailing, FallbackValue=False}"
+                                Content="Tail"
+                                Command="{Binding ToggleTailCommand}"
+                                IsEnabled="{Binding SelectedTab.CanToggleTail, FallbackValue=False}"
+                                IsVisible="{Binding SelectedTab.CanTail, FallbackValue=False}"
+                                ToolTip.Tip="Follow the file as it grows (read-only while on)"/>
+                        <TextBlock Text="|" Foreground="{DynamicResource StatusBarSeparator}" FontSize="11"
+                                   IsVisible="{Binding SelectedTab.CanTail, FallbackValue=False}"/>
                         <TextBlock Foreground="{DynamicResource StatusBarText}" FontSize="11">
                             <Run Text="Ln "/>
                             <Run Text="{Binding StatusBar.Line}"/>
@@ -348,8 +273,7 @@
                                     <Grid Tag="{Binding}"
                                           PointerPressed="TabItem_PointerPressed"
                                           Cursor="Hand"
-                                          MinHeight="30"
-                                          RowDefinitions="*,2">
+                                          MinHeight="30">
                                         <Grid.ContextMenu>
                                             <ContextMenu x:DataType="vm:TabViewModel">
                                                 <MenuItem Header="Close" Tag="{Binding}" Click="CloseTab_Click" InputGesture="Ctrl+W" />
@@ -371,7 +295,7 @@
                                                 <MenuItem Header="Rename..." Tag="{Binding}" Click="RenameTab_Click" />
                                             </ContextMenu>
                                         </Grid.ContextMenu>
-                                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="8,4">
+                                        <StackPanel Orientation="Horizontal" Margin="8,4">
                                             <!-- Drag Handle -->
                                             <Path Data="M8 12a1 1 0 1 0 2 0 1 1 0 1 0-2 0M8 5a1 1 0 1 0 2 0 1 1 0 1 0-2 0M8 19a1 1 0 1 0 2 0 1 1 0 1 0-2 0M14 12a1 1 0 1 0 2 0 1 1 0 1 0-2 0M14 5a1 1 0 1 0 2 0 1 1 0 1 0-2 0M14 19a1 1 0 1 0 2 0 1 1 0 1 0-2 0"
                                                   Stroke="{DynamicResource DragHandleColor}"
@@ -450,13 +374,11 @@
                                                       Width="8" Height="8"/>
                                             </Button>
                                         </StackPanel>
-                                        <!-- Selection / Note indicator -->
-                                        <Panel Grid.Row="1">
-                                            <Border Background="{DynamicResource AccentColor}"
-                                                    IsVisible="{Binding $parent[ListBoxItem].IsSelected}"/>
-                                            <Border Background="{DynamicResource NoteTabBorderColor}"
-                                                    IsVisible="{Binding IsNote}"/>
-                                        </Panel>
+                                        <!-- Note indicator (left edge) -->
+                                        <Border Width="2"
+                                                HorizontalAlignment="Left"
+                                                Background="{DynamicResource NoteTabBorderColor}"
+                                                IsVisible="{Binding IsNote}"/>
                                     </Grid>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>

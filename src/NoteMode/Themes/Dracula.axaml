@@ -5,7 +5,7 @@
         x:Class="NoteMode.Themes.DraculaTheme">
 
     <Styles.Resources>
-        <SolidColorBrush x:Key="TitleBarBackground" Color="#21222c"/>
+        <SolidColorBrush x:Key="TitleBarBackground" Color="#282a36"/>
         <SolidColorBrush x:Key="TitleBarForeground" Color="#f8f8f2"/>
         <SolidColorBrush x:Key="StatusBarText" Color="#6272a4"/>
         <SolidColorBrush x:Key="StatusBarSeparator" Color="#44475a"/>
@@ -24,10 +24,10 @@
         <SolidColorBrush x:Key="SecondaryText" Color="#6272a4"/>
         <SolidColorBrush x:Key="WarningColor" Color="#ffb86c"/>
         <!-- Tab strip resources -->
-        <SolidColorBrush x:Key="TabStripBackground" Color="#1a1b24"/>
-        <SolidColorBrush x:Key="TabItemBackground" Color="#1a1b24"/>
+        <SolidColorBrush x:Key="TabStripBackground" Color="#21222c"/>
+        <SolidColorBrush x:Key="TabItemBackground" Color="#21222c"/>
         <SolidColorBrush x:Key="TabItemHover" Color="#44475a"/>
-        <SolidColorBrush x:Key="TabItemSelected" Color="#282a36"/>
+        <SolidColorBrush x:Key="TabItemSelected" Color="#121319"/>
         <SolidColorBrush x:Key="TabItemSelectedText" Color="#f8f8f2"/>
         <SolidColorBrush x:Key="TabItemText" Color="#808080"/>
         <SolidColorBrush x:Key="NewTabButtonBackground" Color="#2a2c38"/>
@@ -105,12 +105,12 @@
     </Style>
 
     <Style Selector="ae|TextEditor">
-        <Setter Property="Background" Value="#181920"/>
+        <Setter Property="Background" Value="#121319"/>
         <Setter Property="Foreground" Value="#e0e0e0"/>
         <Setter Property="LineNumbersForeground" Value="#6272a4"/>
         <Setter Property="FontFamily" Value="{DynamicResource MonoFont}"/>
         <Setter Property="ShowLineNumbers" Value="True"/>
-        <Setter Property="Padding" Value="8,10,10,10"/>
+        <Setter Property="Padding" Value="0,10,10,10"/>
         <Setter Property="SearchResultsBrush" Value="#5A4020"/>
     </Style>
 

@@ -30,6 +30,8 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
     private bool _externalChangesAcknowledged;
     private bool _isNote;
     private bool _isPreview;
+    private bool _isTailing;
+    private long _tailLength = -1;
     private Encoding _encoding = TextFileIO.DefaultEncoding;
     private readonly object _cacheLock = new();
     private bool _disposed;
@@ -103,6 +105,9 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
             {
                 _filePath = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(CanTail));
+                if (!CanTail)
+                    IsTailing = false;
                 UpdateSyntaxHighlighting();
                 if (!string.IsNullOrEmpty(value))
                 {
@@ -144,6 +149,7 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
                 OnPropertyChanged(nameof(DisplayTitle));
                 OnPropertyChanged(nameof(ShowDirtyIndicator));
                 OnPropertyChanged(nameof(HasUnsavedChanges));
+                OnPropertyChanged(nameof(CanToggleTail));
             }
         }
     }
@@ -160,6 +166,7 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
                 OnPropertyChanged(nameof(DisplayTitle));
                 OnPropertyChanged(nameof(ShowDirtyIndicator));
                 OnPropertyChanged(nameof(HasUnsavedChanges));
+                OnPropertyChanged(nameof(CanToggleTail));
             }
         }
     }
@@ -232,6 +239,7 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
             {
                 _isNote = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(CanTail));
             }
         }
     }
@@ -253,6 +261,52 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
                 OnPropertyChanged();
             }
         }
+    }
+
+    /// <summary>True for a .log file tab, which can follow the file as it grows.</summary>
+    public bool CanTail =>
+        !_isNote && string.Equals(Path.GetExtension(_filePath), ".log", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// While true the tab is read-only, polled every second, reloaded whenever the file changes and
+    /// scrolled to its end. Turning it on reloads the file now, so it is refused while there are
+    /// unsaved changes.
+    /// </summary>
+    public bool IsTailing
+    {
+        get => _isTailing;
+        set
+        {
+            var newValue = value && CanTail && (_isTailing || !HasUnsavedChanges);
+            if (_isTailing == newValue)
+                return;
+            _isTailing = newValue;
+            _tailLength = -1;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CanToggleTail));
+            if (newValue)
+            {
+                // Pick up whatever was written while the file was not being followed.
+                _externalChangesAcknowledged = false;
+                ReloadFromDisk();
+            }
+        }
+    }
+
+    /// <summary>Tailing reloads the file, so it can only be turned on without unsaved changes.</summary>
+    public bool CanToggleTail => _isTailing || !HasUnsavedChanges;
+
+    /// <summary>
+    /// Flags a tailed tab when the file's length differs from what was last read. Windows can
+    /// leave the last-write time unchanged while another process still has the log open, so the
+    /// length is checked as well.
+    /// </summary>
+    public bool ReportTailLength(long length)
+    {
+        if (!_isTailing || !IsWatchingForExternalChanges || length == _tailLength)
+            return false;
+        HasExternalChanges = true;
+        return true;
     }
 
     public void SetOriginalContent(string content)
@@ -288,11 +342,14 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
         var content = Content; // Load the file (and any cached edits) while this is still a file tab.
         _cacheTimer.Stop();
         _isNote = true;
+        _isTailing = false;
         _filePath = null;
         _lastKnownModified = null;
         _externalChangesAcknowledged = false;
         HasExternalChanges = false;
         OnPropertyChanged(nameof(IsNote));
+        OnPropertyChanged(nameof(IsTailing));
+        OnPropertyChanged(nameof(CanTail));
         OnPropertyChanged(nameof(FilePath));
         lock (_cacheLock)
             _cacheService.SaveCache(Id, content);
@@ -367,7 +424,8 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
             Order = order,
             LastModified = _lastKnownModified,
             SyntaxName = _syntaxName,
-            IsNote = _isNote
+            IsNote = _isNote,
+            IsTailing = _isTailing
         };
     }
 
@@ -381,6 +439,7 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
             _isContentLoaded = false,
             _lastKnownModified = state.LastModified,
             _isNote = state.IsNote,
+            _isTailing = state.IsTailing,
             // For notes, cache is canonical so don't mark as "cached changes"
             _hasCachedChanges = state.IsNote ? false : cacheService.HasCache(state.Id)
         };
@@ -430,8 +489,9 @@ public class TabViewModel : INotifyPropertyChanged, IDisposable
 
         try
         {
-            var (content, encoding) = TextFileIO.Read(_filePath);
+            var (content, encoding) = TextFileIO.Read(_filePath, out var length);
             _cacheTimer.Stop();
+            _tailLength = length;
             _isContentLoaded = true;
             _lastKnownModified = File.GetLastWriteTimeUtc(_filePath);
             _originalContent = content;

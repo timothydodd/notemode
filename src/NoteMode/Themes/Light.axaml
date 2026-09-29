@@ -111,7 +111,7 @@
         <Setter Property="LineNumbersForeground" Value="#858585"/>
         <Setter Property="FontFamily" Value="{DynamicResource MonoFont}"/>
         <Setter Property="ShowLineNumbers" Value="True"/>
-        <Setter Property="Padding" Value="8,10,10,10"/>
+        <Setter Property="Padding" Value="0,10,10,10"/>
         <Setter Property="SearchResultsBrush" Value="#FFCC66"/>
     </Style>
 
