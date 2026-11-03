@@ -38,6 +38,27 @@ The app has `PublishAot` enabled, so this produces a native `NoteMode.exe` that 
 runtime. It must run on Windows with the Visual Studio "Desktop development with C++" workload (the
 AOT compiler needs the MSVC linker).
 
+## macOS app
+
+```bash
+packaging/build-macos.sh                      # Apple Silicon, version from NoteMode.csproj
+packaging/build-macos.sh --arch universal --version 1.2.3
+```
+
+Publishes Native AOT for `osx-arm64` (and `osx-x64`, joined with `lipo`, for `universal`), builds
+`artifacts/macos-stage/NoteMode.app` (Info.plist from `packaging/macos/Info.plist`, which lists
+NoteMode under "Open With" for text and code files; the icon is made from
+`packaging/macos/AppIcon-1024.png` with `sips` and `iconutil`), signs it ad hoc and packs
+`artifacts/NoteMode-<ver>-macos-<arch>.dmg`. Needs the .NET 10 SDK and the Xcode Command Line Tools
+(`xcode-select --install`). Regenerate the icon after a logo change with
+`dotnet run --project tools/NoteMode.UiPreview -- --mac-icon packaging/macos`.
+
+The ad-hoc signature lets the app run on the machine that built it, but it is not a Developer ID
+signature and the app is not notarized, so Gatekeeper blocks a downloaded copy until its quarantine
+flag is removed (`xattr -dr com.apple.quarantine /Applications/NoteMode.app`). Signing with a
+Developer ID and notarizing (`codesign --options runtime`, `xcrun notarytool submit`, `xcrun
+stapler staple`) needs a paid Apple Developer account and is not set up.
+
 ## Installer
 
 `packaging/Build-Installer.ps1` publishes the app and compiles `packaging/installer/NoteMode.iss`
@@ -93,12 +114,14 @@ sample session. Headlines, colours and what each frame shows are in
 
 ## Releases
 
-`.github/workflows/build.yml` builds every push and pull request to `main`. Pushing a `v*` tag then
-builds the installer, runs the installer smoke test, and only if that passes publishes a GitHub
+`.github/workflows/build.yml` builds every push and pull request to `main`, on Windows and (job
+`macos`, via `packaging/build-macos.sh`) on macOS. Pushing a `v*` tag then builds the installer,
+runs the installer smoke test, and only if that and the macOS build pass publishes a GitHub
 Release with:
 
 - `NoteMode-v<ver>-win-x64.zip` (portable Native AOT build)
 - `NoteMode-Setup-<ver>.exe`
+- `NoteMode-<ver>-macos-universal.dmg` (ad-hoc signed, not notarized)
 - `SHA256SUMS.txt` (verify with `sha256sum -c`)
 
 The unsigned MSIX for Partner Center is a workflow artifact, not part of the release.

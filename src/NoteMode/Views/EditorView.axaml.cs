@@ -309,8 +309,8 @@ public partial class EditorView : UserControl
         if (_editor == null)
             return;
 
-        // Check if Ctrl is pressed
-        if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        // Ctrl (Cmd on macOS) + scroll zooms
+        if (e.KeyModifiers.HasFlag(PlatformShortcuts.Command))
         {
             var delta = e.Delta.Y;
             var currentSize = _editor.FontSize;

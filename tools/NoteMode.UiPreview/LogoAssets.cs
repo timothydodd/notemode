@@ -40,6 +40,22 @@ internal static class LogoAssets
         Save(Logo(300), 300, 300, outDir, "store-icon-300x300.png");
     }
 
+    /// <summary>
+    /// The macOS app icon: the logo on Apple's icon grid (an 824px shape centered in 1024px, the rest
+    /// transparent), so it sits the same size as other apps in the Dock and Finder.
+    /// </summary>
+    public static void RenderMacIcon(string outDir)
+    {
+        Directory.CreateDirectory(outDir);
+        var icon = new Panel
+        {
+            Width = 1024,
+            Height = 1024,
+            Children = { new Decorator { Child = Logo(824), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center } }
+        };
+        Save(icon, 1024, 1024, outDir, "AppIcon-1024.png");
+    }
+
     /// <summary>The logo as a control, <paramref name="size"/> pixels square.</summary>
     public static Control Logo(double size)
     {

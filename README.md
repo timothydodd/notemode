@@ -42,11 +42,23 @@ Windows 10/11 (x64). No .NET runtime needed. Download from the
 | `NoteMode-Setup-<ver>.exe` | **Recommended.** Installs NoteMode, adds it to the Start menu, "Open with" and (optional) the Explorer context menu. Upgrades an older MSI install in place. |
 | `NoteMode-v<ver>-win-x64.zip` | Portable: unzip anywhere and run `NoteMode.exe`. |
 
+macOS 12 or later (Apple Silicon and Intel):
+
+| Download | What it is |
+| --- | --- |
+| `NoteMode-<ver>-macos-universal.dmg` | Open it and drag NoteMode to Applications. |
+
+The Mac app is not notarized by Apple, so macOS blocks a downloaded copy the first time. After
+copying it to Applications, run `xattr -dr com.apple.quarantine /Applications/NoteMode.app` once
+(or right-click NoteMode > Open).
+
 `SHA256SUMS.txt` in each release lists the file hashes.
 
-On macOS and Linux, build from source (below); NoteMode runs there too, without the installer.
+On Linux, build from source (below); NoteMode runs there too, without an installer.
 
 ## Keyboard shortcuts
+
+On macOS use `Cmd` in place of `Ctrl`; Find and replace is `Cmd+Option+F`, Redo `Cmd+Shift+Z`, Quit `Cmd+Q`.
 
 | Shortcut | Action |
 |----------|--------|
@@ -84,8 +96,9 @@ cd notemode
 dotnet run --project src/NoteMode
 ```
 
-Needs the [.NET 10 SDK](https://dotnet.microsoft.com/download). Installers, the Store package, code
-signing, releases and the screenshot tool are covered in [docs/building.md](docs/building.md).
+Needs the [.NET 10 SDK](https://dotnet.microsoft.com/download). On macOS, `packaging/build-macos.sh`
+builds `NoteMode.app` and a `.dmg` (needs the Xcode Command Line Tools). Installers, the Store
+package, code signing, releases and the screenshot tool are covered in [docs/building.md](docs/building.md).
 
 ## Tech stack
 

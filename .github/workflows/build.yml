@@ -95,6 +95,52 @@ jobs:
           name: NoteMode-win-x64
           path: publish/
 
+  # macOS: Native AOT for Apple Silicon and Intel joined into one universal binary, NoteMode.app with an
+  # ad-hoc signature, in a .dmg. Every event builds it; tags attach the .dmg to the GitHub release.
+  # No Apple Developer ID is configured, so it is not notarized (see docs/building.md).
+  macos:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      # Same rule as the Windows jobs: tag, manual version input, or 0.0.<run>.
+      - name: Version
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            version="${GITHUB_REF_NAME#v}"
+          elif [[ "$INPUT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            version="$INPUT_VERSION"
+          else
+            version="0.0.${{ github.run_number }}"
+          fi
+          echo "APP_VERSION=$version" >> "$GITHUB_ENV"
+          echo "Version $version"
+
+      - name: Build
+        run: dotnet build src/NoteMode.sln --configuration Release -p:Version=${{ env.APP_VERSION }}
+
+      # Publishes osx-arm64 and osx-x64 (the hosted Xcode links both), lipo-joins them, builds the
+      # bundle and the .dmg in artifacts/.
+      - name: Package (app bundle + dmg)
+        run: ./packaging/build-macos.sh --version "${{ env.APP_VERSION }}" --arch universal --output artifacts
+
+      - name: Upload dmg
+        uses: actions/upload-artifact@v4
+        with:
+          name: NoteMode-macos
+          path: artifacts/NoteMode-*.dmg
+
   # Tag builds and manual runs: installers, Store package and (tags only) code signing.
   release:
     needs: build
@@ -306,9 +352,10 @@ jobs:
           name: installer-smoke-logs
           path: ${{ runner.temp }}/notemode-installer-logs/
 
-  # Only this job can write to the repository, and only for a tag whose installer passed the smoke test.
+  # Only this job can write to the repository, and only for a tag whose installer passed the smoke test
+  # and whose macOS build succeeded.
   github-release:
-    needs: [release, installer-smoke]
+    needs: [release, installer-smoke, macos]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -331,12 +378,24 @@ jobs:
           name: NoteMode-release-zip
           path: .
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: NoteMode-macos
+          path: artifacts
+
+      # The Windows job hashed the installer; add the disk image so one SHA256SUMS.txt covers both
+      # ("sha256sum -c SHA256SUMS.txt" next to the downloads).
+      - name: Hash the macOS disk image
+        working-directory: artifacts
+        run: sha256sum NoteMode-*.dmg | tee -a SHA256SUMS.txt
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           files: |
             NoteMode-${{ github.ref_name }}-win-x64.zip
             artifacts/NoteMode-Setup-*.exe
+            artifacts/NoteMode-*.dmg
             artifacts/SHA256SUMS.txt
           name: NoteMode ${{ github.ref_name }}
           # The written description, followed by GitHub's "Full Changelog" link.

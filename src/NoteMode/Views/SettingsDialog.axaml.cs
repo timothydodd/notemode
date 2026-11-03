@@ -25,7 +25,9 @@ public partial class SettingsDialog : Window
     private void BuildUI()
     {
         string? unavailable = null;
-        if (!_service.IsWindows)
+        if (OperatingSystem.IsMacOS())
+            unavailable = "On a Mac, choose the app for a file type in Finder: select a file, File > Get Info, pick NoteMode under \"Open with\" and click Change All.";
+        else if (!_service.IsWindows)
             unavailable = "File associations can only be set from here on Windows. Use your desktop's \"Open With\" settings instead.";
         else if (AppInfo.IsPackaged)
             unavailable = "This copy of NoteMode comes from the Microsoft Store. To open a file type with it, right-click a file > Open with > Choose another app, or use Windows Settings > Apps > Default apps.";

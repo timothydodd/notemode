@@ -68,36 +68,54 @@ public partial class MainWindow : Window
         AddHandler(PointerMovedEvent, Window_PointerMoved, handledEventsToo: true);
         AddHandler(PointerReleasedEvent, Window_PointerReleased, handledEventsToo: true);
         AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);
+
+        if (OperatingSystem.IsMacOS())
+            UseMacTitleBar();
+    }
+
+    /// <summary>
+    /// macOS: keep the custom title bar (menu, drag area) but show the native traffic-light buttons
+    /// over its left end instead of the Windows-style minimize/maximize/close buttons.
+    /// </summary>
+    private void UseMacTitleBar()
+    {
+        WindowDecorations = WindowDecorations.Full;
+        if (this.FindControl<Control>("WindowControls") is { } controls)
+            controls.IsVisible = false;
+        if (this.FindControl<Control>("TitleBarIcon") is { } icon)
+            icon.IsVisible = false;
+        if (this.FindControl<Control>("TitleBarGrid") is { } grid)
+            grid.Margin = new Thickness(72, 0, 0, 0);
     }
 
     private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Key.S && e.KeyModifiers == KeyModifiers.Control)
+        if (e.Key == Key.S && e.KeyModifiers == PlatformShortcuts.Command)
         {
             RunAsync(SaveFileAsync);
             e.Handled = true;
         }
-        else if (e.Key == Key.S && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift))
+        else if (e.Key == Key.S && e.KeyModifiers == (PlatformShortcuts.Command | KeyModifiers.Shift))
         {
             RunAsync(SaveAsAsync);
             e.Handled = true;
         }
-        else if (e.Key == Key.F && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift))
+        else if (e.Key == Key.F && e.KeyModifiers == (PlatformShortcuts.Command | KeyModifiers.Shift))
         {
             ToggleSearchPanel();
             e.Handled = true;
         }
-        else if (e.Key == Key.E && e.KeyModifiers == KeyModifiers.Control)
+        else if (e.Key == Key.E && e.KeyModifiers == PlatformShortcuts.Command)
         {
             ToggleExplorerPanel();
             e.Handled = true;
         }
-        else if (e.Key == Key.V && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift))
+        else if (e.Key == Key.V && e.KeyModifiers == (PlatformShortcuts.Command | KeyModifiers.Shift))
         {
             GetCurrentEditorView()?.TogglePreview();
             e.Handled = true;
         }
-        else if (e.Key == Key.N && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift))
+        else if (e.Key == Key.N && e.KeyModifiers == (PlatformShortcuts.Command | KeyModifiers.Shift))
         {
             ToggleNotesPanel();
             e.Handled = true;
@@ -704,6 +722,9 @@ public partial class MainWindow : Window
             await Clipboard.SetTextAsync(path);
     }
 
+    public static string RevealMenuHeader { get; } =
+        OperatingSystem.IsMacOS() ? "Reveal in Finder" : "Reveal in File Explorer";
+
     private void RevealInExplorer_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (sender is not MenuItem { Tag: TabViewModel { FilePath: { Length: > 0 } path } })
@@ -712,6 +733,8 @@ public partial class MainWindow : Window
         {
             if (OperatingSystem.IsWindows())
                 System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{path}\"");
+            else if (OperatingSystem.IsMacOS())
+                System.Diagnostics.Process.Start("open", new[] { "-R", path }); // reveal in Finder
             else
                 Launcher.LaunchDirectoryInfoAsync(new System.IO.FileInfo(path).Directory!);
         }
@@ -1268,7 +1291,10 @@ public partial class MainWindow : Window
         }
     }
 
-    private void Settings_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void Settings_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e) => ShowSettings();
+
+    /// <summary>Opens Settings (also from the macOS application menu).</summary>
+    public void ShowSettings()
     {
         var dialog = new SettingsDialog();
         dialog.ShowDialog(this);

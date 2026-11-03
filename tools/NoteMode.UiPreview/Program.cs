@@ -16,6 +16,7 @@ namespace NoteMode.UiPreview;
 /// <item><c>--store &lt;outDir&gt;</c>: the 1920x1080 marketing screenshots (README and Store listing).</item>
 /// <item><c>--hero &lt;outDir&gt;</c>: the Store hero banner at 1920x1080 and 3840x2160.</item>
 /// <item><c>--assets &lt;outDir&gt;</c>: the MSIX logo images (packaging/Assets) and the 300x300 Store icon.</item>
+/// <item><c>--mac-icon &lt;outDir&gt;</c>: the 1024x1024 macOS app icon (packaging/macos), made into an .icns by build-macos.sh.</item>
 /// </list>
 /// </summary>
 internal static class Program
@@ -52,6 +53,9 @@ internal static class Program
                     break;
                 case "--assets":
                     LogoAssets.Render(outDir);
+                    break;
+                case "--mac-icon":
+                    LogoAssets.RenderMacIcon(outDir);
                     break;
                 default:
                     RenderPreviews(outDir, home);

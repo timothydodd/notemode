@@ -33,6 +33,11 @@ dotnet run --project tools/NoteMode.UiPreview -- --assets packaging/Assets
 
 The tool sets `NOTEMODE_HOME` to a temp folder, so it never touches the real `~/.notemode`.
 
+macOS: `packaging/build-macos.sh [--version x.y.z] [--arch arm64|x64|universal]` publishes Native AOT
+and builds `NoteMode.app` + `artifacts/NoteMode-<ver>-macos-<arch>.dmg` (ad-hoc signed; needs the
+Xcode Command Line Tools). The SDK may be installed per user in `~/.dotnet` (add it to `PATH` and
+set `DOTNET_ROOT`).
+
 ## Architecture
 
 **MVVM Pattern** with manual dependency injection:
@@ -87,7 +92,8 @@ Smart tab selection: When closing a tab, selects next tab to the right, or previ
 Same setup as the RoboMouse repo (see `docs/building.md`):
 - `packaging/installer/NoteMode.iss` (Inno Setup 6) built by `packaging/Build-Installer.ps1`; smoke test `packaging/Test-Installer.ps1`
 - `packaging/Build-Msix.ps1` + `packaging/Package.appxmanifest` for the Microsoft Store (file types declared in the manifest; Settings hides registry associations when `AppInfo.IsPackaged`)
-- `.github/workflows/build.yml`: build on push/PR; `v*` tags build the installer + MSIX, sign with Azure Trusted Signing (when configured), smoke-test the installer, then publish the GitHub release. The version comes from the tag; bump `<Version>` in `NoteMode.csproj` when tagging.
+- `packaging/build-macos.sh` + `packaging/macos/` (Info.plist template, 1024px icon from `NoteMode.UiPreview --mac-icon`) for the macOS `.app`/`.dmg`
+- `.github/workflows/build.yml`: build on push/PR (Windows, plus the `macos` job that builds the universal `.dmg`, attached to tag releases); `v*` tags build the installer + MSIX, sign with Azure Trusted Signing (when configured), smoke-test the installer, then publish the GitHub release. The version comes from the tag; bump `<Version>` in `NoteMode.csproj` when tagging.
 - **Every release needs `docs/releases/<tag>.md`** (what NoteMode is, what's new in plain user-facing language, downloads/signing) committed before the tag is pushed; CI publishes it as the release description and fails the tag build without it. When editing an existing release, update both the file and the published body (`gh release edit <tag> --notes-file docs/releases/<tag>.md`).
 - Tag builds pause for the owner's approval (`release` environment, required reviewer, `v*` tags only) before anything is signed or published.
 
@@ -116,3 +122,7 @@ Dracula colors:
 - `Ctrl+Shift+A` Save All, `Ctrl+W` Close tab, `Ctrl+Shift+W` Toggle whitespace
 - `Ctrl+F` Find, `Ctrl+H` Replace, `Ctrl+Shift+F` Search panel, `Ctrl+E` Explorer, `Ctrl+Shift+N` Notes, `Ctrl+Shift+V` Markdown preview
 - `Ctrl+Scroll` Font size (6-72pt, handled in `EditorView.axaml.cs`)
+
+Write shortcuts Windows-style (`Ctrl+...` in XAML, `PlatformShortcuts.Command` in code, never `KeyModifiers.Control`). On macOS `Views/PlatformShortcuts.cs` rewrites every `KeyBinding`, `MenuItem.InputGesture` and "Ctrl+" tooltip to Cmd, with Mac exceptions (Ctrl+H → Cmd+Option+F, Ctrl+Y → Cmd+Shift+Z, Alt+F4 → Cmd+Q).
+
+macOS specifics: native traffic-light buttons replace the custom window buttons (`MainWindow.UseMacTitleBar`); Finder opens files via Apple Events (`App.SetUpMacApp`, `IActivatableLifetime` file activation), which also sets the native app menu (About / Settings Cmd+,); single instance uses a lock file instead of a named mutex.

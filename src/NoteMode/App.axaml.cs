@@ -2,7 +2,10 @@ using System;
 using System.IO;
 using System.Linq;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input;
+using Avalonia.Platform.Storage;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
 using NoteMode.Services;
@@ -39,6 +42,9 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            // Before any window exists, so their shortcuts are created in the platform's form.
+            PlatformShortcuts.Install();
+
             var stateService = new StateService();
             var cacheService = new CacheService();
             _syntaxService = new SyntaxService();
@@ -89,6 +95,9 @@ public partial class App : Application
                 fileChangeService.Dispose();
             };
 
+            if (OperatingSystem.IsMacOS())
+                SetUpMacApp(desktop, viewModel);
+
             // Single-instance: open files forwarded from later launches in this instance.
             SingleInstanceManager.StartServer(receivedArgs =>
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
@@ -127,6 +136,39 @@ public partial class App : Application
             e.Handled = true;
         };
         AppDomain.CurrentDomain.UnhandledException += (_, e) => Preserve(e.ExceptionObject as Exception);
+    }
+
+    /// <summary>
+    /// macOS: Finder opens files (double-click, Open With, drop on the Dock icon) with an Apple Event
+    /// to the running app rather than command-line arguments, and the application menu (NoteMode >
+    /// About, Settings) is the native one rather than part of the window.
+    /// </summary>
+    private void SetUpMacApp(IClassicDesktopStyleApplicationLifetime desktop, MainWindowViewModel viewModel)
+    {
+        if (this.TryGetFeature<IActivatableLifetime>() is { } activatable)
+        {
+            activatable.Activated += (_, e) =>
+            {
+                if (e is FileActivatedEventArgs fileArgs)
+                {
+                    var paths = fileArgs.Files
+                        .Select(f => f.TryGetLocalPath())
+                        .OfType<string>()
+                        .ToArray();
+                    HandleForwardedArgs(desktop, viewModel, paths);
+                }
+            };
+        }
+
+        var about = new NativeMenuItem("About NoteMode");
+        about.Click += (_, _) => (desktop.MainWindow as MainWindow)?.ShowSettings();
+        var settings = new NativeMenuItem("Settings...")
+        {
+            Gesture = new KeyGesture(Key.OemComma, KeyModifiers.Meta)
+        };
+        settings.Click += (_, _) => (desktop.MainWindow as MainWindow)?.ShowSettings();
+        // Avalonia adds the standard Services / Hide / Quit (Cmd+Q) items after these.
+        NativeMenu.SetMenu(this, new NativeMenu { about, new NativeMenuItemSeparator(), settings });
     }
 
     private static void HandleForwardedArgs(

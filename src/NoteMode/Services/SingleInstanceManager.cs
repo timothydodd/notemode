@@ -13,20 +13,47 @@ namespace NoteMode.Services;
 /// </summary>
 public static class SingleInstanceManager
 {
-    // Unique, app-specific names. The leading scope keeps the mutex per-user session.
+    // Unique, app-specific names, one per user session.
+    // Windows: "Local\" scopes the mutex to the session; pipe names are machine-wide, so the pipe
+    // carries the user and session too (otherwise a second signed-in user's instance could not
+    // create it and files would go to the wrong user).
     private const string MutexName = @"Local\NoteMode-SingleInstance-7b3f1c20";
-    // Pipe names are machine-wide, so scope it like the mutex: one per user session. Otherwise a
-    // second signed-in user's instance could not create it and files would go to the wrong user.
-    private static readonly string PipeName =
-        $"NoteMode-SingleInstance-Pipe-7b3f1c20-{Environment.UserName}-{System.Diagnostics.Process.GetCurrentProcess().SessionId}";
+    // macOS/Linux: a named mutex does not work there (the Native AOT build never shared one between
+    // processes in testing, and .NET's "Local\" is the Unix session, a new one per terminal window),
+    // so an exclusive lock on a per-user file in the temp folder decides instead; the OS drops it if
+    // the process dies. The pipe is a Unix socket in the temp folder, whose path must stay under
+    // ~104 characters (macOS's temp folder alone is ~50), so its name is kept short.
+    private static readonly string PipeName = OperatingSystem.IsWindows()
+        ? $"NoteMode-SingleInstance-Pipe-7b3f1c20-{Environment.UserName}-{System.Diagnostics.Process.GetCurrentProcess().SessionId}"
+        : $"notemode-{Environment.UserName}";
 
     private static Mutex? _mutex;
+    private static FileStream? _lockFile;
 
     /// <summary>True if this process is the primary (first) instance.</summary>
     public static bool TryAcquire()
     {
-        _mutex = new Mutex(initiallyOwned: true, MutexName, out bool createdNew);
-        return createdNew;
+        if (OperatingSystem.IsWindows())
+        {
+            _mutex = new Mutex(initiallyOwned: true, MutexName, out bool createdNew);
+            return createdNew;
+        }
+
+        try
+        {
+            _lockFile = new FileStream(
+                Path.Combine(Path.GetTempPath(), $"notemode-{Environment.UserName}.lock"),
+                FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            return true;
+        }
+        catch (IOException)
+        {
+            return false; // held by the running instance
+        }
+        catch
+        {
+            return true; // cannot lock at all (temp folder unusable): just run
+        }
     }
 
     /// <summary>Release the primary-instance lock on shutdown.</summary>
@@ -35,6 +62,8 @@ public static class SingleInstanceManager
         try { _mutex?.ReleaseMutex(); } catch { /* not owned */ }
         _mutex?.Dispose();
         _mutex = null;
+        _lockFile?.Dispose();
+        _lockFile = null;
     }
 
     /// <summary>

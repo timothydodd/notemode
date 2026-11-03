@@ -36,9 +36,10 @@
             <Border DockPanel.Dock="Top"
                     Background="{DynamicResource TitleBarBackground}"
                     Height="32">
-                <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+                <!-- On macOS the native traffic-light buttons sit over the left end (code-behind) -->
+                <Grid x:Name="TitleBarGrid" ColumnDefinitions="Auto,Auto,*,Auto">
                     <!-- App Icon -->
-                    <Image Grid.Column="0"
+                    <Image x:Name="TitleBarIcon" Grid.Column="0"
                            Source="avares://NoteMode/Assets/notemode-icon.ico"
                            Width="16" Height="16"
                            Margin="8,0,4,0"
@@ -141,8 +142,8 @@
                             Background="Transparent"
                             PointerPressed="TitleBar_PointerPressed" />
 
-                    <!-- Window Controls -->
-                    <StackPanel Grid.Column="3"
+                    <!-- Window Controls (Windows/Linux; macOS uses its own) -->
+                    <StackPanel x:Name="WindowControls" Grid.Column="3"
                                 Orientation="Horizontal"
                                 VerticalAlignment="Stretch">
                         <Button Classes="winctl" Click="Minimize_Click"
@@ -290,7 +291,7 @@
                                                 <Separator />
                                                 <MenuItem Header="Copy Path" Tag="{Binding}" Click="CopyPath_Click"
                                                           IsVisible="{Binding FilePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                                                <MenuItem Header="Reveal in File Explorer" Tag="{Binding}" Click="RevealInExplorer_Click"
+                                                <MenuItem Header="{x:Static views:MainWindow.RevealMenuHeader}" Tag="{Binding}" Click="RevealInExplorer_Click"
                                                           IsVisible="{Binding FilePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                                                 <MenuItem Header="Rename..." Tag="{Binding}" Click="RenameTab_Click" />
                                             </ContextMenu>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- NoteMode.app's Info.plist. build-macos.sh fills in @VERSION@. -->
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>NoteMode</string>
+    <key>CFBundleDisplayName</key>
+    <string>NoteMode</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.timothydodd.notemode</string>
+    <key>CFBundleExecutable</key>
+    <string>NoteMode</string>
+    <key>CFBundleIconFile</key>
+    <string>NoteMode</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>@VERSION@</string>
+    <key>CFBundleVersion</key>
+    <string>@VERSION@</string>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.developer-tools</string>
+    <!-- The Native AOT executable is built for macOS 12 and later. -->
+    <key>LSMinimumSystemVersion</key>
+    <string>12.0</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSHumanReadableCopyright</key>
+    <string>Copyright (c) 2025 Tim Dodd. MIT License.</string>
+    <!-- Lists NoteMode under "Open With" for text and code. "Alternate" never takes over a file type
+         by itself; the user picks NoteMode as the default in Finder (Get Info > Open with). -->
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>Text Document</string>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>public.text</string>
+                <string>public.plain-text</string>
+                <string>public.utf8-plain-text</string>
+                <string>public.source-code</string>
+                <string>public.script</string>
+                <string>public.shell-script</string>
+                <string>public.json</string>
+                <string>public.xml</string>
+                <string>public.yaml</string>
+                <string>public.html</string>
+                <string>public.css</string>
+                <string>public.comma-separated-values-text</string>
+                <string>public.tab-separated-values-text</string>
+                <string>public.log</string>
+                <string>public.svg-image</string>
+                <string>net.daringfireball.markdown</string>
+                <string>com.netscape.javascript-source</string>
+                <string>public.python-script</string>
+                <string>public.ruby-script</string>
+                <string>public.php-script</string>
+                <string>public.perl-script</string>
+            </array>
+        </dict>
+        <!-- Extensions macOS has no text type for (they would otherwise only be "data"); the same
+             list Settings offers on Windows. -->
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>Text File</string>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>txt</string>
+                <string>log</string>
+                <string>md</string>
+                <string>markdown</string>
+                <string>rst</string>
+                <string>csv</string>
+                <string>tsv</string>
+                <string>json</string>
+                <string>xml</string>
+                <string>yaml</string>
+                <string>yml</string>
+                <string>toml</string>
+                <string>ini</string>
+                <string>cfg</string>
+                <string>conf</string>
+                <string>env</string>
+                <string>properties</string>
+                <string>scss</string>
+                <string>sass</string>
+                <string>less</string>
+                <string>cs</string>
+                <string>ts</string>
+                <string>tsx</string>
+                <string>jsx</string>
+                <string>go</string>
+                <string>rs</string>
+                <string>kt</string>
+                <string>scala</string>
+                <string>fs</string>
+                <string>fsx</string>
+                <string>ps1</string>
+                <string>psm1</string>
+                <string>bat</string>
+                <string>cmd</string>
+                <string>lua</string>
+                <string>r</string>
+                <string>sql</string>
+                <string>graphql</string>
+                <string>proto</string>
+            </array>
+        </dict>
+    </array>
+</dict>
+</plist>
