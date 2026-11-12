@@ -173,7 +173,10 @@ public partial class MainWindow : Window
         if (ViewModel != null)
         {
             ViewModel.ExternalChangeDetected += OnExternalChangeDetected;
-            ViewModel.ErrorOccurred += (_, error) => RunAsync(() => ShowMessageAsync(error.Title, error.Message));
+            // Posted: a failed background save reports from the cache timer's thread.
+            ViewModel.ErrorOccurred += (_, error) => Avalonia.Threading.Dispatcher.UIThread.Post(
+                () => RunAsync(() => ShowMessageAsync(error.Title, error.Message)));
+            ViewModel.CheckDataFolder();
             IsEphemeralMode = ViewModel.IsEphemeralMode;
             ViewModel.PropertyChanged += (s, e) =>
             {

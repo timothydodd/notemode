@@ -18,16 +18,18 @@ public class CacheService
         return Path.Combine(_cacheDir, $"{tabId}.cache");
     }
 
-    public void SaveCache(Guid tabId, string content)
+    /// <summary>Returns false when the cache could not be written (the background auto-cache ignores it; an explicit save must not).</summary>
+    public bool SaveCache(Guid tabId, string content)
     {
         try
         {
             var path = GetCachePath(tabId);
             AppPaths.WriteAllTextAtomic(path, content);
+            return true;
         }
         catch (Exception)
         {
-            // Silently fail on cache errors
+            return false;
         }
     }
 

@@ -80,6 +80,32 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
     private void ReportError(string title, string message) => ErrorOccurred?.Invoke(this, (title, message));
 
+    private bool _explicitNoteSave;
+
+    /// <summary>Background saves (auto-cache, notes index, open tabs) fail quietly in the services; tell the user once per run of failures.</summary>
+    private void OnDataWriteFailed(string path, string reason)
+    {
+        if (_explicitNoteSave)
+            return;
+        ReportError("NoteMode could not save its data",
+            $"Writing {path} failed:\n{reason}\n\n" +
+            "Notes, unsaved edits and open tabs are not being stored and will be lost when NoteMode closes. " +
+            "This message will not repeat until saving works again.");
+    }
+
+    /// <summary>Warns at startup when the data folder cannot be written, since notes and unsaved edits would not survive a restart, and starts reporting later write failures.</summary>
+    public void CheckDataFolder()
+    {
+        AppPaths.WriteFailed -= OnDataWriteFailed;
+        AppPaths.WriteFailed += OnDataWriteFailed;
+
+        var problem = AppPaths.GetDataDirProblem();
+        if (problem != null)
+            ReportError("NoteMode cannot save its data",
+                $"The data folder is not writable:\n{problem}\n\n" +
+                "Notes, unsaved edits and open tabs will be lost when NoteMode closes. Fix the folder's owner or permissions, then restart NoteMode.");
+    }
+
     public MainWindowViewModel(StateService stateService, CacheService cacheService, SyntaxService syntaxService, FileChangeService fileChangeService, NoteService noteService)
     {
         _stateService = stateService;
@@ -408,7 +434,17 @@ public class MainWindowViewModel : INotifyPropertyChanged
             if (filePath != null)
                 return WriteFile(filePath, tab.Content, TextFileIO.DefaultEncoding);
 
-            _cacheService.SaveCache(tab.Id, tab.Content);
+            _explicitNoteSave = true; // This failure gets its own message below, not the general one too.
+            bool cached;
+            try { cached = _cacheService.SaveCache(tab.Id, tab.Content); }
+            finally { _explicitNoteSave = false; }
+            if (!cached)
+            {
+                ReportError("Could not save note",
+                    $"\"{tab.Title}\" could not be written to {AppPaths.CacheDir}.\n\n" +
+                    "Check that you own the folder and can write to it. Keep NoteMode open (or copy the text elsewhere) until this is fixed: the note's changes exist only in this window.");
+                return false;
+            }
             tab.MarkAsSaved();
             _noteService.UpdateNote(tab.Id, tab.Title, tab.SyntaxName);
             SaveState();
